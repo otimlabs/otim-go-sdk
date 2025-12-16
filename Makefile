@@ -6,11 +6,8 @@ otim-protocol:
 update-otim-protocol:
 	cd otim-protocol && git pull
 
-go-ethereum:
-	git clone git@github.com:ethereum/go-ethereum.git
-
-eth-devtools: go-ethereum
-	cd go-ethereum && make && make devtools
+eth-devtools:
+	go install github.com/ethereum/go-ethereum/cmd/abigen@v1.16.7
 
 foundry:
 	curl -L https://foundry.paradigm.xyz | bash
@@ -21,5 +18,7 @@ foundryup:
 otim-protocol-abi:
 	cd otim-protocol && forge soldeer update && forge build --extra-output-files abi
 
-go-abi: otim-protocol-abi
+install-otim-protocol-deps: foundry foundryup
+
+go-abi-gen: eth-devtools otim-protocol-abi
 	./scripts/gen_abi.sh
