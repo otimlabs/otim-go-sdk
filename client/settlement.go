@@ -108,6 +108,7 @@ func (c *Client) NewOrchestrationFromBuild(
 		return nil, err
 	}
 
+	// TODO: Figure out how to encode this so it matches alloy format.
 	authorization.V = authorizationSignature.V
 	authorization.R = authorizationSignature.R
 	authorization.S = authorizationSignature.S
