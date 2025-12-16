@@ -44,7 +44,7 @@ func (s *EthSigner) Sign(data []byte) ([]byte, error) {
 	return crypto.Sign(data, s.privateKey)
 }
 
-func (s *EthSigner) TKSign(data []byte, subOrganizationId string, walletAccountAddress common.Address) error {
+func (s *EthSigner) TKSign(data []byte, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error) {
 	payload := string(data)
 	walletAccountAddressString := walletAccountAddress.String()
 	params := signing.NewSignRawPayloadParams().WithBody(&models.SignRawPayloadRequest{
@@ -59,6 +59,10 @@ func (s *EthSigner) TKSign(data []byte, subOrganizationId string, walletAccountA
 		Type: (*string)(models.ActivityTypeSignRawPayloadV2.Pointer()),
 	})
 
-	_, err := s.tkClient.V0().Signing.SignRawPayload(params, s.tkClient.Authenticator)
-	return err
+	res, err := s.tkClient.V0().Signing.SignRawPayload(params, s.tkClient.Authenticator)
+	if err != nil {
+		return nil, err
+	}
+
+	return SigFromTurnkeyResult(res.Payload.Activity.Result.SignRawPayloadResult)
 }

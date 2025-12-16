@@ -7,6 +7,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/holiman/uint256"
 )
 
 type ChainID uint64
@@ -82,4 +84,33 @@ func (c *Client) NewOrchestration(
 		return nil, err
 	}
 	return &result, nil
+}
+
+// TODO: Likely needs to be moved out from a client to a workflow helper.
+func (c *Client) NewOrchestrationFromBuild(
+	ctx context.Context,
+	buildOrchestrationResponse *BuildOrchestrationResponse,
+) (*NewOrchestrationRequest, error) {
+	authorization := types.SetCodeAuthorization{
+		ChainID: *uint256.NewInt(0),
+		Nonce:   0,
+		Address: c.otimDelegateAddr,
+		// Those should just be set to 0
+		V: 0,
+		R: *uint256.NewInt(0),
+		S: *uint256.NewInt(0),
+	}
+
+	hash := authorization.SigHash()
+
+	authorizationSignature, err := c.TKSign(hash[:], buildOrchestrationResponse.SubOrgID, buildOrchestrationResponse.EphemeralWalletAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	authorization.V = authorizationSignature.V
+	authorization.R = authorizationSignature.R
+	authorization.S = authorizationSignature.S
+
+	return nil, nil
 }

@@ -10,20 +10,25 @@ import (
 	"strings"
 
 	"otim-go-sdk/signer"
+
+	"github.com/ethereum/go-ethereum/common"
 )
 
 type Client struct {
 	signer.Signer
 	apiKey string
 	apiUrl string
+	// Otim delegate address, should instead be a method parameter if we want it flexible
+	otimDelegateAddr common.Address
 }
 
-func NewClient(signer signer.Signer, apiUrl string, apiKey string) *Client {
+func NewClient(signer signer.Signer, apiUrl string, apiKey string, otimDelegateAddr common.Address) *Client {
 	apiUrl = strings.TrimRight(apiUrl, "/")
 	return &Client{
-		Signer: signer,
-		apiKey: apiKey,
-		apiUrl: apiUrl,
+		Signer:           signer,
+		apiKey:           apiKey,
+		apiUrl:           apiUrl,
+		otimDelegateAddr: otimDelegateAddr,
 	}
 }
 
