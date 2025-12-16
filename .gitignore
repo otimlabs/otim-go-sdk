@@ -47,8 +47,9 @@ cover.out
 *.local.yml
 *.local.json
 
-# otim-protocol
+# otim
 otim-protocol/
+otim-offchain/
 
 # go-ethereum
 go-ethereum/

@@ -55,10 +55,10 @@ type NewInstructionRequest struct {
 }
 
 type NewOrchestrationRequest struct {
-	RequestID             string                 `json:"requestId"`
-	SignedAuthorization   string                 `json:"signedAuthorization"`   // RLP-encoded SignedAuthorization as hex string
+	RequestID              string                  `json:"requestId"`
+	SignedAuthorization    string                  `json:"signedAuthorization"` // RLP-encoded SignedAuthorization as hex string
 	CompletionInstructions []NewInstructionRequest `json:"completionInstructions"`
-	Instructions          []NewInstructionRequest `json:"instructions"`
+	Instructions           []NewInstructionRequest `json:"instructions"`
 }
 
 func (c *Client) BuildSettlementOrchestration(
@@ -76,6 +76,7 @@ func (c *Client) NewOrchestration(
 	ctx context.Context,
 	req *NewOrchestrationRequest,
 ) (*BuildOrchestrationResponse, error) {
+
 	var result BuildOrchestrationResponse
 	if err := c.postJSON(ctx, "/orchestration/new", req, &result); err != nil {
 		return nil, err
