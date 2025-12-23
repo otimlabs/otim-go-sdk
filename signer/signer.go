@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/holiman/uint256"
 	"github.com/tkhq/go-sdk/pkg/api/models"
 )
@@ -15,6 +16,10 @@ type Signer interface {
 	Sign(data []byte) ([]byte, error)
 	// TKSign signs data using the Turnkey API, signer's private key acts as an api key.
 	TKSign(data []byte, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error)
+	// TKSignEIP7702 signs EIP-7702 authorization using the Turnkey API
+	TKSignEIP7702(authorization types.SetCodeAuthorization, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error)
+	// TKSignEIP712 signs EIP-712 typed data using the Turnkey API
+	TKSignEIP712(typedData map[string]interface{}, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error)
 }
 
 // Signature is a struct representing an Ethereum ECDSA signature.
