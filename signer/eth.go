@@ -154,3 +154,47 @@ func (s *EthSigner) TKSignEIP712(
 	return SigFromTurnkeyResult(res.Payload.Activity.Result.SignRawPayloadResult)
 }
 
+func (s *EthSigner) TKSignEIP712Batch(
+	typedDataList []map[string]interface{},
+	subOrganizationId string,
+	walletAccountAddress common.Address,
+) ([]*Signature, error) {
+	// Build array of JSON payloads to sign
+	payloads := make([]string, len(typedDataList))
+	walletAccountAddressString := walletAccountAddress.String()
+	
+	for i, typedData := range typedDataList {
+		// Serialize each EIP-712 typed data to JSON
+		typedDataJSON, err := json.Marshal(typedData)
+		if err != nil {
+			return nil, fmt.Errorf("marshal typed data %d: %w", i, err)
+		}
+		
+		payloads[i] = string(typedDataJSON)
+	}
+
+	params := signing.NewSignRawPayloadsParams().WithBody(&models.SignRawPayloadsRequest{
+		OrganizationID: &subOrganizationId,
+		TimestampMs:    util.RequestTimestamp(),
+		Parameters: &models.SignRawPayloadsIntent{
+			SignWith:     &walletAccountAddressString,
+			Encoding:     models.PayloadEncodingEip712.Pointer(),
+			HashFunction: models.HashFunctionNoOp.Pointer(),
+			Payloads:     payloads,
+		},
+		Type: (*string)(models.ActivityTypeSignRawPayloads.Pointer()),
+	})
+
+	res, err := s.tkClient.V0().Signing.SignRawPayloads(params, s.tkClient.Authenticator)
+	if err != nil {
+		return nil, fmt.Errorf("turnkey batch sign EIP-712: %w", err)
+	}
+
+	// Extract signatures from batch result
+	if res.Payload == nil || res.Payload.Activity == nil || res.Payload.Activity.Result == nil || res.Payload.Activity.Result.SignRawPayloadsResult == nil {
+		return nil, fmt.Errorf("nil turnkey batch result")
+	}
+
+	return SigsFromTurnkeyBatchResult(res.Payload.Activity.Result.SignRawPayloadsResult.Signatures)
+}
+

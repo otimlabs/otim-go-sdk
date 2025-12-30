@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -182,22 +181,31 @@ func (c *Client) signInstructions(
 	subOrgID string,
 	walletAddress common.Address,
 ) ([]NewInstructionRequest, error) {
-	instructions := make([]NewInstructionRequest, len(buildInstructions))
+	if len(buildInstructions) == 0 {
+		return []NewInstructionRequest{}, nil
+	}
 
+	// Build all TypedData payloads
+	typedDataList := make([]map[string]interface{}, len(buildInstructions))
 	for i, instr := range buildInstructions {
-		// Build EIP-712 TypedData (which handles action type determination and decoding internally)
-		chainID := big.NewInt(int64(instr.ChainID))
-		typedData, err := BuildTypedDataForAction(instr, chainID, c.otimDelegateAddr)
+		typedData, err := BuildTypedDataForAction(instr, c.otimDelegateAddr)
 		if err != nil {
 			return nil, fmt.Errorf("build typed data for instruction %d: %w", i, err)
 		}
+		typedDataList[i] = typedData
+	}
 
-		// Sign via Turnkey - Turnkey will handle the EIP-712 hashing internally
-		sig, err := c.TKSignEIP712(typedData, subOrgID, walletAddress)
-		if err != nil {
-			return nil, fmt.Errorf("sign instruction %d: %w", i, err)
-		}
+	// Sign all instructions in a single batch call to Turnkey
+	signatures, err := c.TKSignEIP712Batch(typedDataList, subOrgID, walletAddress)
+	if err != nil {
+		return nil, fmt.Errorf("batch sign instructions: %w", err)
+	}
 
+	// Pack signatures and build instruction requests
+	instructions := make([]NewInstructionRequest, len(buildInstructions))
+	for i, instr := range buildInstructions {
+		sig := signatures[i]
+		
 		// Pack signature into 65-byte format: R (32 bytes) || S (32 bytes) || V (1 byte)
 		sigBytes := make([]byte, 65)
 		rBytes := sig.R.Bytes32()

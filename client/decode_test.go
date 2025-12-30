@@ -358,7 +358,8 @@ func compareValues(t *testing.T, path string, expected, actual interface{}) {
 }
 
 // expectedDomain creates the expected domain map for E2E tests
-func expectedDomain(chainID *big.Int) map[string]interface{} {
+func expectedDomain() map[string]interface{} {
+	chainID := big.NewInt(testChainID)
 	return map[string]interface{}{
 		"name":              "OtimDelegate",
 		"version":           "1",
@@ -2367,9 +2368,8 @@ func TestE2E_TransferTypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "Transfer")
 
 	// Generate TypedData (which handles action type determination and decoding internally)
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2396,7 +2396,7 @@ func TestE2E_TransferTypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain": "present",
@@ -2415,9 +2415,8 @@ func TestE2E_TransferTypedData(t *testing.T) {
 func TestE2E_TransferOnceTypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validTransferOnceEncoded)
 	instruction := mockBuildInstruction(encodedBytes, "TransferOnce")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2437,7 +2436,7 @@ func TestE2E_TransferOnceTypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain": "present",
@@ -2454,9 +2453,8 @@ func TestE2E_TransferOnceTypedData(t *testing.T) {
 func TestE2E_TransferERC20TypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validTransferERC20Encoded)
 	instruction := mockBuildInstruction(encodedBytes, "TransferERC20")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2482,7 +2480,7 @@ func TestE2E_TransferERC20TypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain":  "present",
@@ -2500,9 +2498,8 @@ func TestE2E_TransferERC20TypedData(t *testing.T) {
 func TestE2E_TransferERC20OnceTypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validTransferERC20OnceEncoded)
 	instruction := mockBuildInstruction(encodedBytes, "TransferERC20Once")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2522,7 +2519,7 @@ func TestE2E_TransferERC20OnceTypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain":       "present",
@@ -2539,9 +2536,8 @@ func TestE2E_TransferERC20OnceTypedData(t *testing.T) {
 func TestE2E_TransferCCTPTypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validTransferCCTPEncoded)
 	instruction := mockBuildInstruction(encodedBytes, "TransferCCTP")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2568,7 +2564,7 @@ func TestE2E_TransferCCTPTypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain": "present",
@@ -2586,9 +2582,8 @@ func TestE2E_TransferCCTPTypedData(t *testing.T) {
 func TestE2E_SweepCCTPTypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validSweepCCTPEncoded)
 	instruction := mockBuildInstruction(encodedBytes, "SweepCCTP")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2610,7 +2605,7 @@ func TestE2E_SweepCCTPTypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain": "present",
@@ -2627,9 +2622,8 @@ func TestE2E_SweepCCTPTypedData(t *testing.T) {
 func TestE2E_SweepTypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validSweepEncoded)
 	instruction := mockBuildInstruction(encodedBytes, "Sweep")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2650,7 +2644,7 @@ func TestE2E_SweepTypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain": "present",
@@ -2667,9 +2661,8 @@ func TestE2E_SweepTypedData(t *testing.T) {
 func TestE2E_SweepERC20TypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validSweepERC20Encoded)
 	instruction := mockBuildInstruction(encodedBytes, "SweepERC20")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2690,7 +2683,7 @@ func TestE2E_SweepERC20TypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain": "present",
@@ -2707,9 +2700,8 @@ func TestE2E_SweepERC20TypedData(t *testing.T) {
 func TestE2E_SweepUniswapV3TypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validSweepUniswapV3Encoded)
 	instruction := mockBuildInstruction(encodedBytes, "SweepUniswapV3")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2735,7 +2727,7 @@ func TestE2E_SweepUniswapV3TypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain":   "present",
@@ -2752,9 +2744,8 @@ func TestE2E_SweepUniswapV3TypedData(t *testing.T) {
 func TestE2E_SweepDepositERC4626TypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validSweepDepositERC4626Encoded)
 	instruction := mockBuildInstruction(encodedBytes, "SweepDepositERC4626")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2777,7 +2768,7 @@ func TestE2E_SweepDepositERC4626TypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain":         "present",
@@ -2794,9 +2785,8 @@ func TestE2E_SweepDepositERC4626TypedData(t *testing.T) {
 func TestE2E_SweepWithdrawERC4626TypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validSweepWithdrawERC4626Encoded)
 	instruction := mockBuildInstruction(encodedBytes, "SweepWithdrawERC4626")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2818,7 +2808,7 @@ func TestE2E_SweepWithdrawERC4626TypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain":          "present",
@@ -2835,9 +2825,8 @@ func TestE2E_SweepWithdrawERC4626TypedData(t *testing.T) {
 func TestE2E_RefuelTypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validRefuelEncoded)
 	instruction := mockBuildInstruction(encodedBytes, "Refuel")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2858,7 +2847,7 @@ func TestE2E_RefuelTypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain": "present",
@@ -2875,9 +2864,8 @@ func TestE2E_RefuelTypedData(t *testing.T) {
 func TestE2E_RefuelERC20TypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validRefuelERC20Encoded)
 	instruction := mockBuildInstruction(encodedBytes, "RefuelERC20")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2898,7 +2886,7 @@ func TestE2E_RefuelERC20TypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain": "present",
@@ -2915,9 +2903,8 @@ func TestE2E_RefuelERC20TypedData(t *testing.T) {
 func TestE2E_UniswapV3ExactInputTypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validUniswapV3ExactInputEncoded)
 	instruction := mockBuildInstruction(encodedBytes, "UniswapV3ExactInput")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2948,7 +2935,7 @@ func TestE2E_UniswapV3ExactInputTypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain":        "present",
@@ -2966,9 +2953,8 @@ func TestE2E_UniswapV3ExactInputTypedData(t *testing.T) {
 func TestE2E_DepositERC4626TypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validDepositERC4626Encoded)
 	instruction := mockBuildInstruction(encodedBytes, "DepositERC4626")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2996,7 +2982,7 @@ func TestE2E_DepositERC4626TypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain":   "present",
@@ -3014,9 +3000,8 @@ func TestE2E_DepositERC4626TypedData(t *testing.T) {
 func TestE2E_WithdrawERC4626TypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validWithdrawERC4626Encoded)
 	instruction := mockBuildInstruction(encodedBytes, "WithdrawERC4626")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -3043,7 +3028,7 @@ func TestE2E_WithdrawERC4626TypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain":    "present",
@@ -3061,9 +3046,8 @@ func TestE2E_WithdrawERC4626TypedData(t *testing.T) {
 func TestE2E_CallOnceTypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validCallOnceEncoded)
 	instruction := mockBuildInstruction(encodedBytes, "CallOnce")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -3087,7 +3071,7 @@ func TestE2E_CallOnceTypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain": "present",
@@ -3104,9 +3088,8 @@ func TestE2E_CallOnceTypedData(t *testing.T) {
 func TestE2E_DeactivateInstructionTypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validDeactivateInstructionEncoded)
 	instruction := mockBuildInstruction(encodedBytes, "DeactivateInstruction")
-	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -3124,7 +3107,7 @@ func TestE2E_DeactivateInstructionTypedData(t *testing.T) {
 	
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
-		"domain":      expectedDomain(chainID),
+		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
 			"EIP712Domain":          "present",

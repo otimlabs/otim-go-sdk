@@ -101,7 +101,6 @@ func convertToTypedStruct(from interface{}, to interface{}) error {
 // BuildTypedDataForAction builds EIP-712 TypedData for a given action type
 func BuildTypedDataForAction(
 	instruction BuildInstructionResponse,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
 	// Determine the action type from the instruction's action name
@@ -122,109 +121,109 @@ func BuildTypedDataForAction(
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert Transfer args: %w", err)
 		}
-		return buildTransferInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildTransferInstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeTransferOnce:
 		var typedArgs transferonceaction.ITransferOnceActionTransferOnce
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert TransferOnce args: %w", err)
 		}
-		return buildTransferOnceInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildTransferOnceInstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeTransferERC20:
 		var typedArgs transfererc20action.ITransferERC20ActionTransferERC20
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert TransferERC20 args: %w", err)
 		}
-		return buildTransferERC20InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildTransferERC20InstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeTransferERC20Once:
 		var typedArgs transfererc20onceaction.ITransferERC20OnceActionTransferERC20Once
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert TransferERC20Once args: %w", err)
 		}
-		return buildTransferERC20OnceInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildTransferERC20OnceInstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeTransferCCTP:
 		var typedArgs transfercctpaction.ITransferCCTPActionTransferCCTP
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert TransferCCTP args: %w", err)
 		}
-		return buildTransferCCTPInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildTransferCCTPInstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeSweep:
 		var typedArgs sweepaction.ISweepActionSweep
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert Sweep args: %w", err)
 		}
-		return buildSweepInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildSweepInstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeSweepERC20:
 		var typedArgs sweeperc20action.ISweepERC20ActionSweepERC20
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert SweepERC20 args: %w", err)
 		}
-		return buildSweepERC20InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildSweepERC20InstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeSweepCCTP:
 		var typedArgs sweepcctpaction.ISweepCCTPActionSweepCCTP
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert SweepCCTP args: %w", err)
 		}
-		return buildSweepCCTPInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildSweepCCTPInstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeSweepUniswapV3:
 		var typedArgs sweepuniswapv3action.ISweepUniswapV3ActionSweepUniswapV3
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert SweepUniswapV3 args: %w", err)
 		}
-		return buildSweepUniswapV3InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildSweepUniswapV3InstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeRefuel:
 		var typedArgs refuelaction.IRefuelActionRefuel
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert Refuel args: %w", err)
 		}
-		return buildRefuelInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildRefuelInstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeRefuelERC20:
 		var typedArgs refuelerc20action.IRefuelERC20ActionRefuelERC20
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert RefuelERC20 args: %w", err)
 		}
-		return buildRefuelERC20InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildRefuelERC20InstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeUniswapV3ExactInput:
 		var typedArgs uniswapv3exactinputaction.IUniswapV3ExactInputActionUniswapV3ExactInput
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert UniswapV3ExactInput args: %w", err)
 		}
-		return buildUniswapV3ExactInputInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildUniswapV3ExactInputInstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeDepositERC4626:
 		var typedArgs depositerc4626action.IDepositERC4626ActionDepositERC4626
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert DepositERC4626 args: %w", err)
 		}
-		return buildDepositERC4626InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildDepositERC4626InstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeWithdrawERC4626:
 		var typedArgs withdrawerc4626action.IWithdrawERC4626ActionWithdrawERC4626
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert WithdrawERC4626 args: %w", err)
 		}
-		return buildWithdrawERC4626InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildWithdrawERC4626InstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeSweepDepositERC4626:
 		var typedArgs sweepdepositerc4626action.ISweepDepositERC4626ActionSweepDepositERC4626
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert SweepDepositERC4626 args: %w", err)
 		}
-		return buildSweepDepositERC4626InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildSweepDepositERC4626InstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeSweepWithdrawERC4626:
 		var typedArgs sweepwithdrawerc4626action.ISweepWithdrawERC4626ActionSweepWithdrawERC4626
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert SweepWithdrawERC4626 args: %w", err)
 		}
-		return buildSweepWithdrawERC4626InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildSweepWithdrawERC4626InstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeCallOnce:
 		var typedArgs callonceaction.ICallOnceActionCallOnce
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert CallOnce args: %w", err)
 		}
-		return buildCallOnceInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildCallOnceInstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	case ActionTypeDeactivateInstruction:
 		var typedArgs deactivateinstructionaction.IDeactivateInstructionActionDeactivateInstruction
 		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
 			return nil, fmt.Errorf("convert DeactivateInstruction args: %w", err)
 		}
-		return buildDeactivateInstructionInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
+		return buildDeactivateInstructionInstructionTypedData(instruction, typedArgs, otimDelegateAddr)
 	default:
 		return nil, fmt.Errorf("unsupported action type: %s", actionType)
 	}
@@ -448,9 +447,9 @@ func scheduleTypeDefinition() []map[string]string {
 func buildTransferInstructionTypedData(
 	instruction BuildInstructionResponse,
 	transfer transferaction.ITransferActionTransfer,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -486,9 +485,9 @@ func buildTransferInstructionTypedData(
 func buildTransferOnceInstructionTypedData(
 	instruction BuildInstructionResponse,
 	transferOnce transferonceaction.ITransferOnceActionTransferOnce,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -521,9 +520,9 @@ func buildTransferOnceInstructionTypedData(
 func buildSweepInstructionTypedData(
 	instruction BuildInstructionResponse,
 	sweep sweepaction.ISweepActionSweep,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -558,9 +557,9 @@ func buildSweepInstructionTypedData(
 func buildRefuelInstructionTypedData(
 	instruction BuildInstructionResponse,
 	refuel refuelaction.IRefuelActionRefuel,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -595,9 +594,9 @@ func buildRefuelInstructionTypedData(
 func buildTransferERC20InstructionTypedData(
 	instruction BuildInstructionResponse,
 	transferERC20 transfererc20action.ITransferERC20ActionTransferERC20,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -633,9 +632,9 @@ func buildTransferERC20InstructionTypedData(
 func buildTransferERC20OnceInstructionTypedData(
 	instruction BuildInstructionResponse,
 	transferERC20Once transfererc20onceaction.ITransferERC20OnceActionTransferERC20Once,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -668,9 +667,9 @@ func buildTransferERC20OnceInstructionTypedData(
 func buildSweepERC20InstructionTypedData(
 	instruction BuildInstructionResponse,
 	sweepERC20 sweeperc20action.ISweepERC20ActionSweepERC20,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -705,9 +704,9 @@ func buildSweepERC20InstructionTypedData(
 func buildRefuelERC20InstructionTypedData(
 	instruction BuildInstructionResponse,
 	refuelERC20 refuelerc20action.IRefuelERC20ActionRefuelERC20,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -742,9 +741,9 @@ func buildRefuelERC20InstructionTypedData(
 func buildTransferCCTPInstructionTypedData(
 	instruction BuildInstructionResponse,
 	transferCCTP transfercctpaction.ITransferCCTPActionTransferCCTP,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -782,9 +781,9 @@ func buildTransferCCTPInstructionTypedData(
 func buildSweepCCTPInstructionTypedData(
 	instruction BuildInstructionResponse,
 	sweepCCTP sweepcctpaction.ISweepCCTPActionSweepCCTP,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -821,9 +820,9 @@ func buildSweepCCTPInstructionTypedData(
 func buildUniswapV3ExactInputInstructionTypedData(
 	instruction BuildInstructionResponse,
 	uniswapV3 uniswapv3exactinputaction.IUniswapV3ExactInputActionUniswapV3ExactInput,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -869,9 +868,9 @@ func buildUniswapV3ExactInputInstructionTypedData(
 func buildSweepUniswapV3InstructionTypedData(
 	instruction BuildInstructionResponse,
 	sweepUniswapV3 sweepuniswapv3action.ISweepUniswapV3ActionSweepUniswapV3,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -916,9 +915,9 @@ func buildSweepUniswapV3InstructionTypedData(
 func buildDepositERC4626InstructionTypedData(
 	instruction BuildInstructionResponse,
 	depositERC4626 depositerc4626action.IDepositERC4626ActionDepositERC4626,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -958,9 +957,9 @@ func buildDepositERC4626InstructionTypedData(
 func buildWithdrawERC4626InstructionTypedData(
 	instruction BuildInstructionResponse,
 	withdrawERC4626 withdrawerc4626action.IWithdrawERC4626ActionWithdrawERC4626,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -998,9 +997,9 @@ func buildWithdrawERC4626InstructionTypedData(
 func buildSweepDepositERC4626InstructionTypedData(
 	instruction BuildInstructionResponse,
 	sweepDepositERC4626 sweepdepositerc4626action.ISweepDepositERC4626ActionSweepDepositERC4626,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -1039,9 +1038,9 @@ func buildSweepDepositERC4626InstructionTypedData(
 func buildSweepWithdrawERC4626InstructionTypedData(
 	instruction BuildInstructionResponse,
 	sweepWithdrawERC4626 sweepwithdrawerc4626action.ISweepWithdrawERC4626ActionSweepWithdrawERC4626,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -1078,9 +1077,9 @@ func buildSweepWithdrawERC4626InstructionTypedData(
 func buildCallOnceInstructionTypedData(
 	instruction BuildInstructionResponse,
 	callOnce callonceaction.ICallOnceActionCallOnce,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
@@ -1121,9 +1120,9 @@ func buildCallOnceInstructionTypedData(
 func buildDeactivateInstructionInstructionTypedData(
 	instruction BuildInstructionResponse,
 	deactivateInstruction deactivateinstructionaction.IDeactivateInstructionActionDeactivateInstruction,
-	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	chainID := big.NewInt(int64(instruction.ChainID))
 	return map[string]interface{}{
 		"types": map[string]interface{}{
 			"EIP712Domain": eip712DomainTypeDefinition(),
