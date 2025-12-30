@@ -185,20 +185,9 @@ func (c *Client) signInstructions(
 	instructions := make([]NewInstructionRequest, len(buildInstructions))
 
 	for i, instr := range buildInstructions {
-		// Determine the action type
-		var actionType ActionType
-		var err error
-
-		// Use ActionName if available
-		actionType, err = ActionTypeFromName(instr.ActionName)
-		if err != nil {
-			return nil, fmt.Errorf("invalid action name for instruction %d: %w", i, err)
-		}
-		
-
-		// Build EIP-712 TypedData (which handles decoding internally)
+		// Build EIP-712 TypedData (which handles action type determination and decoding internally)
 		chainID := big.NewInt(int64(instr.ChainID))
-		typedData, err := BuildTypedDataForAction(actionType, instr, chainID, c.otimDelegateAddr)
+		typedData, err := BuildTypedDataForAction(instr, chainID, c.otimDelegateAddr)
 		if err != nil {
 			return nil, fmt.Errorf("build typed data for instruction %d: %w", i, err)
 		}

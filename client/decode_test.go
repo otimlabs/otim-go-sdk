@@ -2261,10 +2261,10 @@ func TestE2E_TransferTypedData(t *testing.T) {
 	encodedBytes := common.FromHex(validTransferEncoded)
 	instruction := mockBuildInstruction(encodedBytes, "Transfer")
 
-	// Generate TypedData (which handles decoding internally)
+	// Generate TypedData (which handles action type determination and decoding internally)
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeTransfer, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2321,7 +2321,7 @@ func TestE2E_TransferOnceTypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "TransferOnce")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeTransferOnce, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2370,7 +2370,7 @@ func TestE2E_TransferERC20TypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "TransferERC20")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeTransferERC20, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2422,7 +2422,7 @@ func TestE2E_TransferERC20OnceTypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "TransferERC20Once")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeTransferERC20Once, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2471,7 +2471,7 @@ func TestE2E_TransferCCTPTypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "TransferCCTP")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeTransferCCTP, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2526,7 +2526,7 @@ func TestE2E_SweepCCTPTypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "SweepCCTP")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeSweepCCTP, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2581,7 +2581,7 @@ func TestE2E_SweepTypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "Sweep")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeSweep, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2633,7 +2633,7 @@ func TestE2E_SweepERC20TypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "SweepERC20")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeSweepERC20, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2685,7 +2685,7 @@ func TestE2E_SweepUniswapV3TypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "SweepUniswapV3")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeSweepUniswapV3, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2752,7 +2752,7 @@ func TestE2E_SweepDepositERC4626TypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "SweepDepositERC4626")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeSweepDepositERC4626, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2810,7 +2810,7 @@ func TestE2E_SweepWithdrawERC4626TypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "SweepWithdrawERC4626")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeSweepWithdrawERC4626, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2865,7 +2865,7 @@ func TestE2E_RefuelTypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "Refuel")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeRefuel, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2917,7 +2917,7 @@ func TestE2E_RefuelERC20TypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "RefuelERC20")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeRefuelERC20, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -2969,7 +2969,7 @@ func TestE2E_UniswapV3ExactInputTypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "UniswapV3ExactInput")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeUniswapV3ExactInput, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -3036,7 +3036,7 @@ func TestE2E_DepositERC4626TypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "DepositERC4626")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeDepositERC4626, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -3094,7 +3094,7 @@ func TestE2E_WithdrawERC4626TypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "WithdrawERC4626")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeWithdrawERC4626, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -3149,7 +3149,7 @@ func TestE2E_CallOnceTypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "CallOnce")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeCallOnce, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}
@@ -3210,7 +3210,7 @@ func TestE2E_DeactivateInstructionTypedData(t *testing.T) {
 	instruction := mockBuildInstruction(encodedBytes, "DeactivateInstruction")
 	chainID := big.NewInt(testChainID)
 	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
-	typedData, err := BuildTypedDataForAction(ActionTypeDeactivateInstruction, instruction, chainID, otimDelegate)
+	typedData, err := BuildTypedDataForAction(instruction, chainID, otimDelegate)
 	if err != nil {
 		t.Fatalf("BuildTypedDataForAction failed: %v", err)
 	}

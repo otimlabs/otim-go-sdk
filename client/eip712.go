@@ -100,11 +100,16 @@ func convertToTypedStruct(from interface{}, to interface{}) error {
 
 // BuildTypedDataForAction builds EIP-712 TypedData for a given action type
 func BuildTypedDataForAction(
-	actionType ActionType,
 	instruction BuildInstructionResponse,
 	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	// Determine the action type from the instruction's action name
+	actionType, err := ActionTypeFromName(instruction.ActionName)
+	if err != nil {
+		return nil, fmt.Errorf("invalid action name: %w", err)
+	}
+
 	// Decode the arguments from the instruction
 	actionArgs, err := DecodeArguments(actionType, instruction.Arguments)
 	if err != nil {
