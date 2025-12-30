@@ -10,7 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 
 	"otim-go-sdk/abi/callonceaction"
 	"otim-go-sdk/abi/deactivateinstructionaction"
@@ -86,84 +85,141 @@ func ActionTypeFromName(name string) (ActionType, error) {
 	}
 }
 
-// ComputeEIP712Hash computes the EIP-712 hash from TypedData
-func ComputeEIP712Hash(typedData map[string]interface{}) ([]byte, error) {
-	// Convert map to apitypes.TypedData
-	typedDataJSON, err := json.Marshal(typedData)
+// convertToTypedStruct converts an anonymous struct from ABI decoding to a typed struct
+func convertToTypedStruct(from interface{}, to interface{}) error {
+	// Use JSON marshaling/unmarshaling as a simple conversion method
+	data, err := json.Marshal(from)
 	if err != nil {
-		return nil, fmt.Errorf("marshal typed data: %w", err)
+		return fmt.Errorf("marshal: %w", err)
 	}
-
-	var td apitypes.TypedData
-	if err := json.Unmarshal(typedDataJSON, &td); err != nil {
-		return nil, fmt.Errorf("unmarshal typed data: %w", err)
+	if err := json.Unmarshal(data, to); err != nil {
+		return fmt.Errorf("unmarshal: %w", err)
 	}
-
-	// Compute domain separator
-	domainSeparator, err := td.HashStruct("EIP712Domain", td.Domain.Map())
-	if err != nil {
-		return nil, fmt.Errorf("hash domain: %w", err)
-	}
-
-	// Compute message hash
-	primaryType := td.PrimaryType
-	messageHash, err := td.HashStruct(primaryType, td.Message)
-	if err != nil {
-		return nil, fmt.Errorf("hash message: %w", err)
-	}
-
-	// Compute final EIP-712 hash: keccak256("\x19\x01" || domainSeparator || messageHash)
-	rawData := []byte(fmt.Sprintf("\x19\x01%s%s", string(domainSeparator), string(messageHash)))
-	hash := crypto.Keccak256(rawData)
-
-	return hash, nil
+	return nil
 }
 
 // BuildTypedDataForAction builds EIP-712 TypedData for a given action type
 func BuildTypedDataForAction(
 	actionType ActionType,
 	instruction BuildInstructionResponse,
-	actionArgs interface{},
 	chainID *big.Int,
 	otimDelegateAddr common.Address,
 ) (map[string]interface{}, error) {
+	// Decode the arguments from the instruction
+	actionArgs, err := DecodeArguments(actionType, instruction.Arguments)
+	if err != nil {
+		return nil, fmt.Errorf("decode %s arguments: %w", actionType, err)
+	}
+
 	switch actionType {
 	case ActionTypeTransfer:
-		return buildTransferInstructionTypedData(instruction, actionArgs.(transferaction.ITransferActionTransfer), chainID, otimDelegateAddr)
+		var typedArgs transferaction.ITransferActionTransfer
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert Transfer args: %w", err)
+		}
+		return buildTransferInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeTransferOnce:
-		return buildTransferOnceInstructionTypedData(instruction, actionArgs.(transferonceaction.ITransferOnceActionTransferOnce), chainID, otimDelegateAddr)
+		var typedArgs transferonceaction.ITransferOnceActionTransferOnce
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert TransferOnce args: %w", err)
+		}
+		return buildTransferOnceInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeTransferERC20:
-		return buildTransferERC20InstructionTypedData(instruction, actionArgs.(transfererc20action.ITransferERC20ActionTransferERC20), chainID, otimDelegateAddr)
+		var typedArgs transfererc20action.ITransferERC20ActionTransferERC20
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert TransferERC20 args: %w", err)
+		}
+		return buildTransferERC20InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeTransferERC20Once:
-		return buildTransferERC20OnceInstructionTypedData(instruction, actionArgs.(transfererc20onceaction.ITransferERC20OnceActionTransferERC20Once), chainID, otimDelegateAddr)
+		var typedArgs transfererc20onceaction.ITransferERC20OnceActionTransferERC20Once
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert TransferERC20Once args: %w", err)
+		}
+		return buildTransferERC20OnceInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeTransferCCTP:
-		return buildTransferCCTPInstructionTypedData(instruction, actionArgs.(transfercctpaction.ITransferCCTPActionTransferCCTP), chainID, otimDelegateAddr)
+		var typedArgs transfercctpaction.ITransferCCTPActionTransferCCTP
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert TransferCCTP args: %w", err)
+		}
+		return buildTransferCCTPInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeSweep:
-		return buildSweepInstructionTypedData(instruction, actionArgs.(sweepaction.ISweepActionSweep), chainID, otimDelegateAddr)
+		var typedArgs sweepaction.ISweepActionSweep
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert Sweep args: %w", err)
+		}
+		return buildSweepInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeSweepERC20:
-		return buildSweepERC20InstructionTypedData(instruction, actionArgs.(sweeperc20action.ISweepERC20ActionSweepERC20), chainID, otimDelegateAddr)
+		var typedArgs sweeperc20action.ISweepERC20ActionSweepERC20
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert SweepERC20 args: %w", err)
+		}
+		return buildSweepERC20InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeSweepCCTP:
-		return buildSweepCCTPInstructionTypedData(instruction, actionArgs.(sweepcctpaction.ISweepCCTPActionSweepCCTP), chainID, otimDelegateAddr)
+		var typedArgs sweepcctpaction.ISweepCCTPActionSweepCCTP
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert SweepCCTP args: %w", err)
+		}
+		return buildSweepCCTPInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeSweepUniswapV3:
-		return buildSweepUniswapV3InstructionTypedData(instruction, actionArgs.(sweepuniswapv3action.ISweepUniswapV3ActionSweepUniswapV3), chainID, otimDelegateAddr)
+		var typedArgs sweepuniswapv3action.ISweepUniswapV3ActionSweepUniswapV3
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert SweepUniswapV3 args: %w", err)
+		}
+		return buildSweepUniswapV3InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeRefuel:
-		return buildRefuelInstructionTypedData(instruction, actionArgs.(refuelaction.IRefuelActionRefuel), chainID, otimDelegateAddr)
+		var typedArgs refuelaction.IRefuelActionRefuel
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert Refuel args: %w", err)
+		}
+		return buildRefuelInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeRefuelERC20:
-		return buildRefuelERC20InstructionTypedData(instruction, actionArgs.(refuelerc20action.IRefuelERC20ActionRefuelERC20), chainID, otimDelegateAddr)
+		var typedArgs refuelerc20action.IRefuelERC20ActionRefuelERC20
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert RefuelERC20 args: %w", err)
+		}
+		return buildRefuelERC20InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeUniswapV3ExactInput:
-		return buildUniswapV3ExactInputInstructionTypedData(instruction, actionArgs.(uniswapv3exactinputaction.IUniswapV3ExactInputActionUniswapV3ExactInput), chainID, otimDelegateAddr)
+		var typedArgs uniswapv3exactinputaction.IUniswapV3ExactInputActionUniswapV3ExactInput
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert UniswapV3ExactInput args: %w", err)
+		}
+		return buildUniswapV3ExactInputInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeDepositERC4626:
-		return buildDepositERC4626InstructionTypedData(instruction, actionArgs.(depositerc4626action.IDepositERC4626ActionDepositERC4626), chainID, otimDelegateAddr)
+		var typedArgs depositerc4626action.IDepositERC4626ActionDepositERC4626
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert DepositERC4626 args: %w", err)
+		}
+		return buildDepositERC4626InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeWithdrawERC4626:
-		return buildWithdrawERC4626InstructionTypedData(instruction, actionArgs.(withdrawerc4626action.IWithdrawERC4626ActionWithdrawERC4626), chainID, otimDelegateAddr)
+		var typedArgs withdrawerc4626action.IWithdrawERC4626ActionWithdrawERC4626
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert WithdrawERC4626 args: %w", err)
+		}
+		return buildWithdrawERC4626InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeSweepDepositERC4626:
-		return buildSweepDepositERC4626InstructionTypedData(instruction, actionArgs.(sweepdepositerc4626action.ISweepDepositERC4626ActionSweepDepositERC4626), chainID, otimDelegateAddr)
+		var typedArgs sweepdepositerc4626action.ISweepDepositERC4626ActionSweepDepositERC4626
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert SweepDepositERC4626 args: %w", err)
+		}
+		return buildSweepDepositERC4626InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeSweepWithdrawERC4626:
-		return buildSweepWithdrawERC4626InstructionTypedData(instruction, actionArgs.(sweepwithdrawerc4626action.ISweepWithdrawERC4626ActionSweepWithdrawERC4626), chainID, otimDelegateAddr)
+		var typedArgs sweepwithdrawerc4626action.ISweepWithdrawERC4626ActionSweepWithdrawERC4626
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert SweepWithdrawERC4626 args: %w", err)
+		}
+		return buildSweepWithdrawERC4626InstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeCallOnce:
-		return buildCallOnceInstructionTypedData(instruction, actionArgs.(callonceaction.ICallOnceActionCallOnce), chainID, otimDelegateAddr)
+		var typedArgs callonceaction.ICallOnceActionCallOnce
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert CallOnce args: %w", err)
+		}
+		return buildCallOnceInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	case ActionTypeDeactivateInstruction:
-		return buildDeactivateInstructionInstructionTypedData(instruction, actionArgs.(deactivateinstructionaction.IDeactivateInstructionActionDeactivateInstruction), chainID, otimDelegateAddr)
+		var typedArgs deactivateinstructionaction.IDeactivateInstructionActionDeactivateInstruction
+		if err := convertToTypedStruct(actionArgs, &typedArgs); err != nil {
+			return nil, fmt.Errorf("convert DeactivateInstruction args: %w", err)
+		}
+		return buildDeactivateInstructionInstructionTypedData(instruction, typedArgs, chainID, otimDelegateAddr)
 	default:
 		return nil, fmt.Errorf("unsupported action type: %s", actionType)
 	}

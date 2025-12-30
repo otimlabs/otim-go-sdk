@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // Test data: Known ABI-encoded structs
@@ -43,6 +44,15 @@ const (
 	// Utility Actions
 	validCallOnceEncoded              = "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000f62849f9a0b5bf2913b396098f7c7019b51a820a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000008fc00000000000000000000000000000000000000000000000000000000000002006bff20900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
 	validDeactivateInstructionEncoded = "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+)
+
+// E2E Test constants for TypedData generation
+const (
+	testSaltHex = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+	testMaxExecutions = 100
+	testActionAddress = "0x1111111111111111111111111111111111111111"
+	testChainID = 1
+	testOtimDelegateAddress = "0x2222222222222222222222222222222222222222"
 )
 
 func TestDecodeArguments_Sweep(t *testing.T) {
@@ -173,19 +183,96 @@ func TestDecodeArguments_Sweep(t *testing.T) {
 	}
 }
 
-// Helper functions for common test patterns
-func skipIfNoData(t *testing.T, hex string) {
-	if hex == "0x" {
-		t.Skip("Skipping test - encoded data not yet provided")
-	}
-}
-
 func getFieldHelper(t *testing.T, v reflect.Value, fieldName string) reflect.Value {
 	field := v.FieldByName(fieldName)
 	if !field.IsValid() {
 		t.Fatalf("field %s not found in struct", fieldName)
 	}
 	return field
+}
+
+// E2E Test Helper Functions
+
+// mockBuildInstruction creates a BuildInstructionResponse with test constants
+func mockBuildInstruction(arguments []byte, actionName string) BuildInstructionResponse {
+	saltBig := new(big.Int)
+	saltBig.SetString(testSaltHex[2:], 16) // Remove "0x" prefix
+	
+	return BuildInstructionResponse{
+		Address:       common.HexToAddress(testActionAddress),
+		ChainID:       ChainID(testChainID),
+		Salt:          hexutil.Big(*saltBig),
+		MaxExecutions: hexutil.Big(*big.NewInt(testMaxExecutions)),
+		Action:        common.HexToAddress(testActionAddress),
+		Arguments:     arguments,
+		ActionName:    actionName,
+	}
+}
+
+// verifyTypedDataStructure validates TypedData has the correct top-level structure
+func verifyTypedDataStructure(t *testing.T, typedData map[string]interface{}, expectedPrimaryType string) {
+	// Check top-level keys
+	if _, ok := typedData["types"]; !ok {
+		t.Error("TypedData missing 'types' field")
+	}
+	if _, ok := typedData["primaryType"]; !ok {
+		t.Error("TypedData missing 'primaryType' field")
+	}
+	if _, ok := typedData["domain"]; !ok {
+		t.Error("TypedData missing 'domain' field")
+	}
+	if _, ok := typedData["message"]; !ok {
+		t.Error("TypedData missing 'message' field")
+	}
+	
+	// Check primaryType
+	if primaryType, ok := typedData["primaryType"].(string); !ok || primaryType != expectedPrimaryType {
+		t.Errorf("primaryType mismatch: got %v, want %s", typedData["primaryType"], expectedPrimaryType)
+	}
+}
+
+// verifyDomain verifies the EIP712Domain fields match test constants
+func verifyDomain(t *testing.T, domain map[string]interface{}) {
+	if name, ok := domain["name"].(string); !ok || name != "OtimDelegate" {
+		t.Errorf("domain.name mismatch: got %v, want OtimDelegate", domain["name"])
+	}
+	if version, ok := domain["version"].(string); !ok || version != "1" {
+		t.Errorf("domain.version mismatch: got %v, want 1", domain["version"])
+	}
+	if chainId, ok := domain["chainId"].(string); !ok || chainId != fmt.Sprintf("%d", testChainID) {
+		t.Errorf("domain.chainId mismatch: got %v, want %d", domain["chainId"], testChainID)
+	}
+	if verifyingContract, ok := domain["verifyingContract"].(string); !ok || verifyingContract != testOtimDelegateAddress {
+		t.Errorf("domain.verifyingContract mismatch: got %v, want %s", domain["verifyingContract"], testOtimDelegateAddress)
+	}
+	if _, ok := domain["salt"]; !ok {
+		t.Error("domain.salt missing")
+	}
+}
+
+// verifyInstructionMessage verifies the instruction-level message fields
+func verifyInstructionMessage(t *testing.T, message map[string]interface{}) {
+	saltBig := new(big.Int)
+	saltBig.SetString(testSaltHex[2:], 16)
+	
+	if salt, ok := message["salt"].(string); !ok || salt != saltBig.String() {
+		t.Errorf("message.salt mismatch: got %v, want %s", message["salt"], saltBig.String())
+	}
+	if maxExecutions, ok := message["maxExecutions"].(string); !ok || maxExecutions != fmt.Sprintf("%d", testMaxExecutions) {
+		t.Errorf("message.maxExecutions mismatch: got %v, want %d", message["maxExecutions"], testMaxExecutions)
+	}
+	if action, ok := message["action"].(string); !ok || action != testActionAddress {
+		t.Errorf("message.action mismatch: got %v, want %s", message["action"], testActionAddress)
+	}
+}
+
+// verifyTypes checks that the types object contains expected type definitions
+func verifyTypes(t *testing.T, types map[string]interface{}, expectedTypes []string) {
+	for _, typeName := range expectedTypes {
+		if _, ok := types[typeName]; !ok {
+			t.Errorf("types missing definition for '%s'", typeName)
+		}
+	}
 }
 
 func TestDecodeArguments_Transfer(t *testing.T) {
@@ -227,10 +314,6 @@ func TestDecodeArguments_Transfer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.encodedHex == "0x" {
-				t.Skip("Skipping test - encoded data not yet provided")
-			}
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -364,10 +447,6 @@ func TestDecodeArguments_TransferOnce(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.encodedHex == "0x" {
-				t.Skip("Skipping test - encoded data not yet provided")
-			}
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -483,8 +562,6 @@ func TestDecodeArguments_TransferERC20(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			skipIfNoData(t, tt.encodedHex)
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -601,8 +678,6 @@ func TestDecodeArguments_TransferERC20Once(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			skipIfNoData(t, tt.encodedHex)
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -707,8 +782,6 @@ func TestDecodeArguments_TransferCCTP(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			skipIfNoData(t, tt.encodedHex)
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -834,7 +907,6 @@ func TestDecodeArguments_SweepCCTP(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			skipIfNoData(t, tt.encodedHex)
 
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
@@ -942,8 +1014,6 @@ func TestDecodeArguments_SweepERC20(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			skipIfNoData(t, tt.encodedHex)
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -1045,8 +1115,6 @@ func TestDecodeArguments_RefuelERC20(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			skipIfNoData(t, tt.encodedHex)
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -1158,8 +1226,6 @@ func TestDecodeArguments_SweepUniswapV3(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			skipIfNoData(t, tt.encodedHex)
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -1290,8 +1356,6 @@ func TestDecodeArguments_SweepDepositERC4626(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			skipIfNoData(t, tt.encodedHex)
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -1405,8 +1469,6 @@ func TestDecodeArguments_SweepWithdrawERC4626(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			skipIfNoData(t, tt.encodedHex)
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -1513,8 +1575,6 @@ func TestDecodeArguments_Refuel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			skipIfNoData(t, tt.encodedHex)
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -1632,8 +1692,6 @@ func TestDecodeArguments_UniswapV3ExactInput(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			skipIfNoData(t, tt.encodedHex)
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -1765,8 +1823,6 @@ func TestDecodeArguments_DepositERC4626(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			skipIfNoData(t, tt.encodedHex)
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -1903,8 +1959,6 @@ func TestDecodeArguments_WithdrawERC4626(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			skipIfNoData(t, tt.encodedHex)
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -2034,8 +2088,6 @@ func TestDecodeArguments_CallOnce(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			skipIfNoData(t, tt.encodedHex)
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -2146,8 +2198,6 @@ func TestDecodeArguments_DeactivateInstruction(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			skipIfNoData(t, tt.encodedHex)
-
 			encodedBytes := common.FromHex(tt.encodedHex)
 			result, err := DecodeArguments(tt.actionType, encodedBytes)
 
@@ -2198,6 +2248,1002 @@ func TestDecodeArguments_DeactivateInstruction(t *testing.T) {
 				t.Errorf("Fee.ExecutionFee mismatch: got %s, want %s", got, tt.expectedExecutionFee)
 			}
 		})
+	}
+}
+
+// ============================================================================
+// E2E TypedData Generation Tests
+// ============================================================================
+
+// TestE2E_TransferTypedData tests the complete flow: decode → generate TypedData
+func TestE2E_TransferTypedData(t *testing.T) {
+	// Create mock instruction
+	encodedBytes := common.FromHex(validTransferEncoded)
+	instruction := mockBuildInstruction(encodedBytes, "Transfer")
+
+	// Generate TypedData (which handles decoding internally)
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeTransfer, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	// Verify TypedData structure
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	// Verify domain
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	// Verify types
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "Transfer", "Schedule", "Fee"})
+
+	// Verify message
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	// Verify transfer-specific fields
+	transfer, ok := message["transfer"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.transfer is not a map")
+	}
+	if _, ok := transfer["target"]; !ok {
+		t.Error("transfer.target missing")
+	}
+	if _, ok := transfer["value"]; !ok {
+		t.Error("transfer.value missing")
+	}
+	if _, ok := transfer["gasLimit"]; !ok {
+		t.Error("transfer.gasLimit missing")
+	}
+	if _, ok := transfer["schedule"]; !ok {
+		t.Error("transfer.schedule missing")
+	}
+	if _, ok := transfer["fee"]; !ok {
+		t.Error("transfer.fee missing")
+	}
+}
+
+// TestE2E_TransferOnceTypedData tests TransferOnce action TypedData generation
+func TestE2E_TransferOnceTypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validTransferOnceEncoded)
+	instruction := mockBuildInstruction(encodedBytes, "TransferOnce")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeTransferOnce, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "TransferOnce", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	transferOnce, ok := message["transferOnce"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.transferOnce is not a map")
+	}
+	if _, ok := transferOnce["target"]; !ok {
+		t.Error("transferOnce.target missing")
+	}
+	if _, ok := transferOnce["value"]; !ok {
+		t.Error("transferOnce.value missing")
+	}
+	if _, ok := transferOnce["gasLimit"]; !ok {
+		t.Error("transferOnce.gasLimit missing")
+	}
+	if _, ok := transferOnce["fee"]; !ok {
+		t.Error("transferOnce.fee missing")
+	}
+}
+
+// TestE2E_TransferERC20TypedData tests TransferERC20 action TypedData generation
+func TestE2E_TransferERC20TypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validTransferERC20Encoded)
+	instruction := mockBuildInstruction(encodedBytes, "TransferERC20")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeTransferERC20, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "TransferERC20", "Schedule", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	transferERC20, ok := message["transferERC20"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.transferERC20 is not a map")
+	}
+	if _, ok := transferERC20["token"]; !ok {
+		t.Error("transferERC20.token missing")
+	}
+	if _, ok := transferERC20["target"]; !ok {
+		t.Error("transferERC20.target missing")
+	}
+	if _, ok := transferERC20["value"]; !ok {
+		t.Error("transferERC20.value missing")
+	}
+	if _, ok := transferERC20["schedule"]; !ok {
+		t.Error("transferERC20.schedule missing")
+	}
+	if _, ok := transferERC20["fee"]; !ok {
+		t.Error("transferERC20.fee missing")
+	}
+}
+
+// TestE2E_TransferERC20OnceTypedData tests TransferERC20Once action TypedData generation
+func TestE2E_TransferERC20OnceTypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validTransferERC20OnceEncoded)
+	instruction := mockBuildInstruction(encodedBytes, "TransferERC20Once")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeTransferERC20Once, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "TransferERC20Once", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	transferERC20Once, ok := message["transferERC20Once"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.transferERC20Once is not a map")
+	}
+	if _, ok := transferERC20Once["token"]; !ok {
+		t.Error("transferERC20Once.token missing")
+	}
+	if _, ok := transferERC20Once["target"]; !ok {
+		t.Error("transferERC20Once.target missing")
+	}
+	if _, ok := transferERC20Once["value"]; !ok {
+		t.Error("transferERC20Once.value missing")
+	}
+	if _, ok := transferERC20Once["fee"]; !ok {
+		t.Error("transferERC20Once.fee missing")
+	}
+}
+
+// TestE2E_TransferCCTPTypedData tests TransferCCTP action TypedData generation
+func TestE2E_TransferCCTPTypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validTransferCCTPEncoded)
+	instruction := mockBuildInstruction(encodedBytes, "TransferCCTP")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeTransferCCTP, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "TransferCCTP", "Schedule", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	transferCCTP, ok := message["transferCCTP"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.transferCCTP is not a map")
+	}
+	if _, ok := transferCCTP["token"]; !ok {
+		t.Error("transferCCTP.token missing")
+	}
+	if _, ok := transferCCTP["amount"]; !ok {
+		t.Error("transferCCTP.amount missing")
+	}
+	if _, ok := transferCCTP["destinationDomain"]; !ok {
+		t.Error("transferCCTP.destinationDomain missing")
+	}
+	if _, ok := transferCCTP["destinationMintRecipient"]; !ok {
+		t.Error("transferCCTP.destinationMintRecipient missing")
+	}
+	if _, ok := transferCCTP["schedule"]; !ok {
+		t.Error("transferCCTP.schedule missing")
+	}
+	if _, ok := transferCCTP["fee"]; !ok {
+		t.Error("transferCCTP.fee missing")
+	}
+}
+
+// TestE2E_SweepCCTPTypedData tests SweepCCTP action TypedData generation
+func TestE2E_SweepCCTPTypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validSweepCCTPEncoded)
+	instruction := mockBuildInstruction(encodedBytes, "SweepCCTP")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeSweepCCTP, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "SweepCCTP", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	sweepCCTP, ok := message["sweepCCTP"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.sweepCCTP is not a map")
+	}
+	if _, ok := sweepCCTP["token"]; !ok {
+		t.Error("sweepCCTP.token missing")
+	}
+	if _, ok := sweepCCTP["threshold"]; !ok {
+		t.Error("sweepCCTP.threshold missing")
+	}
+	if _, ok := sweepCCTP["endBalance"]; !ok {
+		t.Error("sweepCCTP.endBalance missing")
+	}
+	if _, ok := sweepCCTP["destinationDomain"]; !ok {
+		t.Error("sweepCCTP.destinationDomain missing")
+	}
+	if _, ok := sweepCCTP["destinationMintRecipient"]; !ok {
+		t.Error("sweepCCTP.destinationMintRecipient missing")
+	}
+	if _, ok := sweepCCTP["fee"]; !ok {
+		t.Error("sweepCCTP.fee missing")
+	}
+}
+
+// TestE2E_SweepTypedData tests Sweep action TypedData generation
+func TestE2E_SweepTypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validSweepEncoded)
+	instruction := mockBuildInstruction(encodedBytes, "Sweep")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeSweep, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "Sweep", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	sweep, ok := message["sweep"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.sweep is not a map")
+	}
+	if _, ok := sweep["target"]; !ok {
+		t.Error("sweep.target missing")
+	}
+	if _, ok := sweep["threshold"]; !ok {
+		t.Error("sweep.threshold missing")
+	}
+	if _, ok := sweep["endBalance"]; !ok {
+		t.Error("sweep.endBalance missing")
+	}
+	if _, ok := sweep["gasLimit"]; !ok {
+		t.Error("sweep.gasLimit missing")
+	}
+	if _, ok := sweep["fee"]; !ok {
+		t.Error("sweep.fee missing")
+	}
+}
+
+// TestE2E_SweepERC20TypedData tests SweepERC20 action TypedData generation
+func TestE2E_SweepERC20TypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validSweepERC20Encoded)
+	instruction := mockBuildInstruction(encodedBytes, "SweepERC20")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeSweepERC20, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "SweepERC20", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	sweepERC20, ok := message["sweepERC20"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.sweepERC20 is not a map")
+	}
+	if _, ok := sweepERC20["token"]; !ok {
+		t.Error("sweepERC20.token missing")
+	}
+	if _, ok := sweepERC20["target"]; !ok {
+		t.Error("sweepERC20.target missing")
+	}
+	if _, ok := sweepERC20["threshold"]; !ok {
+		t.Error("sweepERC20.threshold missing")
+	}
+	if _, ok := sweepERC20["endBalance"]; !ok {
+		t.Error("sweepERC20.endBalance missing")
+	}
+	if _, ok := sweepERC20["fee"]; !ok {
+		t.Error("sweepERC20.fee missing")
+	}
+}
+
+// TestE2E_SweepUniswapV3TypedData tests SweepUniswapV3 action TypedData generation
+func TestE2E_SweepUniswapV3TypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validSweepUniswapV3Encoded)
+	instruction := mockBuildInstruction(encodedBytes, "SweepUniswapV3")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeSweepUniswapV3, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "SweepUniswapV3", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	sweepUniswapV3, ok := message["sweepUniswapV3"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.sweepUniswapV3 is not a map")
+	}
+	if _, ok := sweepUniswapV3["recipient"]; !ok {
+		t.Error("sweepUniswapV3.recipient missing")
+	}
+	if _, ok := sweepUniswapV3["tokenIn"]; !ok {
+		t.Error("sweepUniswapV3.tokenIn missing")
+	}
+	if _, ok := sweepUniswapV3["tokenOut"]; !ok {
+		t.Error("sweepUniswapV3.tokenOut missing")
+	}
+	if _, ok := sweepUniswapV3["feeTier"]; !ok {
+		t.Error("sweepUniswapV3.feeTier missing")
+	}
+	if _, ok := sweepUniswapV3["threshold"]; !ok {
+		t.Error("sweepUniswapV3.threshold missing")
+	}
+	if _, ok := sweepUniswapV3["endBalance"]; !ok {
+		t.Error("sweepUniswapV3.endBalance missing")
+	}
+	if _, ok := sweepUniswapV3["floorAmountOut"]; !ok {
+		t.Error("sweepUniswapV3.floorAmountOut missing")
+	}
+	if _, ok := sweepUniswapV3["meanPriceLookBack"]; !ok {
+		t.Error("sweepUniswapV3.meanPriceLookBack missing")
+	}
+	if _, ok := sweepUniswapV3["maxPriceDeviationBPS"]; !ok {
+		t.Error("sweepUniswapV3.maxPriceDeviationBPS missing")
+	}
+	if _, ok := sweepUniswapV3["fee"]; !ok {
+		t.Error("sweepUniswapV3.fee missing")
+	}
+}
+
+// TestE2E_SweepDepositERC4626TypedData tests SweepDepositERC4626 action TypedData generation
+func TestE2E_SweepDepositERC4626TypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validSweepDepositERC4626Encoded)
+	instruction := mockBuildInstruction(encodedBytes, "SweepDepositERC4626")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeSweepDepositERC4626, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "SweepDepositERC4626", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	sweepDepositERC4626, ok := message["sweepDepositERC4626"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.sweepDepositERC4626 is not a map")
+	}
+	if _, ok := sweepDepositERC4626["vault"]; !ok {
+		t.Error("sweepDepositERC4626.vault missing")
+	}
+	if _, ok := sweepDepositERC4626["recipient"]; !ok {
+		t.Error("sweepDepositERC4626.recipient missing")
+	}
+	if _, ok := sweepDepositERC4626["threshold"]; !ok {
+		t.Error("sweepDepositERC4626.threshold missing")
+	}
+	if _, ok := sweepDepositERC4626["endBalance"]; !ok {
+		t.Error("sweepDepositERC4626.endBalance missing")
+	}
+	if _, ok := sweepDepositERC4626["minDeposit"]; !ok {
+		t.Error("sweepDepositERC4626.minDeposit missing")
+	}
+	if _, ok := sweepDepositERC4626["minTotalShares"]; !ok {
+		t.Error("sweepDepositERC4626.minTotalShares missing")
+	}
+	if _, ok := sweepDepositERC4626["fee"]; !ok {
+		t.Error("sweepDepositERC4626.fee missing")
+	}
+}
+
+// TestE2E_SweepWithdrawERC4626TypedData tests SweepWithdrawERC4626 action TypedData generation
+func TestE2E_SweepWithdrawERC4626TypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validSweepWithdrawERC4626Encoded)
+	instruction := mockBuildInstruction(encodedBytes, "SweepWithdrawERC4626")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeSweepWithdrawERC4626, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "SweepWithdrawERC4626", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	sweepWithdrawERC4626, ok := message["sweepWithdrawERC4626"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.sweepWithdrawERC4626 is not a map")
+	}
+	if _, ok := sweepWithdrawERC4626["vault"]; !ok {
+		t.Error("sweepWithdrawERC4626.vault missing")
+	}
+	if _, ok := sweepWithdrawERC4626["recipient"]; !ok {
+		t.Error("sweepWithdrawERC4626.recipient missing")
+	}
+	if _, ok := sweepWithdrawERC4626["threshold"]; !ok {
+		t.Error("sweepWithdrawERC4626.threshold missing")
+	}
+	if _, ok := sweepWithdrawERC4626["endBalance"]; !ok {
+		t.Error("sweepWithdrawERC4626.endBalance missing")
+	}
+	if _, ok := sweepWithdrawERC4626["minWithdraw"]; !ok {
+		t.Error("sweepWithdrawERC4626.minWithdraw missing")
+	}
+	if _, ok := sweepWithdrawERC4626["fee"]; !ok {
+		t.Error("sweepWithdrawERC4626.fee missing")
+	}
+}
+
+// TestE2E_RefuelTypedData tests Refuel action TypedData generation
+func TestE2E_RefuelTypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validRefuelEncoded)
+	instruction := mockBuildInstruction(encodedBytes, "Refuel")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeRefuel, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "Refuel", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	refuel, ok := message["refuel"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.refuel is not a map")
+	}
+	if _, ok := refuel["target"]; !ok {
+		t.Error("refuel.target missing")
+	}
+	if _, ok := refuel["threshold"]; !ok {
+		t.Error("refuel.threshold missing")
+	}
+	if _, ok := refuel["endBalance"]; !ok {
+		t.Error("refuel.endBalance missing")
+	}
+	if _, ok := refuel["gasLimit"]; !ok {
+		t.Error("refuel.gasLimit missing")
+	}
+	if _, ok := refuel["fee"]; !ok {
+		t.Error("refuel.fee missing")
+	}
+}
+
+// TestE2E_RefuelERC20TypedData tests RefuelERC20 action TypedData generation
+func TestE2E_RefuelERC20TypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validRefuelERC20Encoded)
+	instruction := mockBuildInstruction(encodedBytes, "RefuelERC20")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeRefuelERC20, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "RefuelERC20", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	refuelERC20, ok := message["refuelERC20"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.refuelERC20 is not a map")
+	}
+	if _, ok := refuelERC20["token"]; !ok {
+		t.Error("refuelERC20.token missing")
+	}
+	if _, ok := refuelERC20["target"]; !ok {
+		t.Error("refuelERC20.target missing")
+	}
+	if _, ok := refuelERC20["threshold"]; !ok {
+		t.Error("refuelERC20.threshold missing")
+	}
+	if _, ok := refuelERC20["endBalance"]; !ok {
+		t.Error("refuelERC20.endBalance missing")
+	}
+	if _, ok := refuelERC20["fee"]; !ok {
+		t.Error("refuelERC20.fee missing")
+	}
+}
+
+// TestE2E_UniswapV3ExactInputTypedData tests UniswapV3ExactInput action TypedData generation
+func TestE2E_UniswapV3ExactInputTypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validUniswapV3ExactInputEncoded)
+	instruction := mockBuildInstruction(encodedBytes, "UniswapV3ExactInput")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeUniswapV3ExactInput, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "UniswapV3ExactInput", "Schedule", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	uniswapV3, ok := message["uniswapV3ExactInput"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.uniswapV3ExactInput is not a map")
+	}
+	if _, ok := uniswapV3["recipient"]; !ok {
+		t.Error("uniswapV3ExactInput.recipient missing")
+	}
+	if _, ok := uniswapV3["tokenIn"]; !ok {
+		t.Error("uniswapV3ExactInput.tokenIn missing")
+	}
+	if _, ok := uniswapV3["tokenOut"]; !ok {
+		t.Error("uniswapV3ExactInput.tokenOut missing")
+	}
+	if _, ok := uniswapV3["feeTier"]; !ok {
+		t.Error("uniswapV3ExactInput.feeTier missing")
+	}
+	if _, ok := uniswapV3["amountIn"]; !ok {
+		t.Error("uniswapV3ExactInput.amountIn missing")
+	}
+	if _, ok := uniswapV3["floorAmountOut"]; !ok {
+		t.Error("uniswapV3ExactInput.floorAmountOut missing")
+	}
+	if _, ok := uniswapV3["meanPriceLookBack"]; !ok {
+		t.Error("uniswapV3ExactInput.meanPriceLookBack missing")
+	}
+	if _, ok := uniswapV3["maxPriceDeviationBPS"]; !ok {
+		t.Error("uniswapV3ExactInput.maxPriceDeviationBPS missing")
+	}
+	if _, ok := uniswapV3["schedule"]; !ok {
+		t.Error("uniswapV3ExactInput.schedule missing")
+	}
+	if _, ok := uniswapV3["fee"]; !ok {
+		t.Error("uniswapV3ExactInput.fee missing")
+	}
+}
+
+// TestE2E_DepositERC4626TypedData tests DepositERC4626 action TypedData generation
+func TestE2E_DepositERC4626TypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validDepositERC4626Encoded)
+	instruction := mockBuildInstruction(encodedBytes, "DepositERC4626")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeDepositERC4626, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "DepositERC4626", "Schedule", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	depositERC4626, ok := message["depositERC4626"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.depositERC4626 is not a map")
+	}
+	if _, ok := depositERC4626["vault"]; !ok {
+		t.Error("depositERC4626.vault missing")
+	}
+	if _, ok := depositERC4626["recipient"]; !ok {
+		t.Error("depositERC4626.recipient missing")
+	}
+	if _, ok := depositERC4626["value"]; !ok {
+		t.Error("depositERC4626.value missing")
+	}
+	if _, ok := depositERC4626["minDeposit"]; !ok {
+		t.Error("depositERC4626.minDeposit missing")
+	}
+	if _, ok := depositERC4626["minTotalShares"]; !ok {
+		t.Error("depositERC4626.minTotalShares missing")
+	}
+	if _, ok := depositERC4626["schedule"]; !ok {
+		t.Error("depositERC4626.schedule missing")
+	}
+	if _, ok := depositERC4626["fee"]; !ok {
+		t.Error("depositERC4626.fee missing")
+	}
+}
+
+// TestE2E_WithdrawERC4626TypedData tests WithdrawERC4626 action TypedData generation
+func TestE2E_WithdrawERC4626TypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validWithdrawERC4626Encoded)
+	instruction := mockBuildInstruction(encodedBytes, "WithdrawERC4626")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeWithdrawERC4626, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "WithdrawERC4626", "Schedule", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	withdrawERC4626, ok := message["withdrawERC4626"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.withdrawERC4626 is not a map")
+	}
+	if _, ok := withdrawERC4626["vault"]; !ok {
+		t.Error("withdrawERC4626.vault missing")
+	}
+	if _, ok := withdrawERC4626["recipient"]; !ok {
+		t.Error("withdrawERC4626.recipient missing")
+	}
+	if _, ok := withdrawERC4626["value"]; !ok {
+		t.Error("withdrawERC4626.value missing")
+	}
+	if _, ok := withdrawERC4626["minWithdraw"]; !ok {
+		t.Error("withdrawERC4626.minWithdraw missing")
+	}
+	if _, ok := withdrawERC4626["schedule"]; !ok {
+		t.Error("withdrawERC4626.schedule missing")
+	}
+	if _, ok := withdrawERC4626["fee"]; !ok {
+		t.Error("withdrawERC4626.fee missing")
+	}
+}
+
+// TestE2E_CallOnceTypedData tests CallOnce action TypedData generation
+func TestE2E_CallOnceTypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validCallOnceEncoded)
+	instruction := mockBuildInstruction(encodedBytes, "CallOnce")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeCallOnce, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "CallOnce", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	callOnce, ok := message["callOnce"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.callOnce is not a map")
+	}
+	if _, ok := callOnce["target"]; !ok {
+		t.Error("callOnce.target missing")
+	}
+	if _, ok := callOnce["allowFailure"]; !ok {
+		t.Error("callOnce.allowFailure missing")
+	}
+	if _, ok := callOnce["value"]; !ok {
+		t.Error("callOnce.value missing")
+	}
+	if _, ok := callOnce["gasLimit"]; !ok {
+		t.Error("callOnce.gasLimit missing")
+	}
+	if _, ok := callOnce["returnSizeLimit"]; !ok {
+		t.Error("callOnce.returnSizeLimit missing")
+	}
+	if _, ok := callOnce["selector"]; !ok {
+		t.Error("callOnce.selector missing")
+	}
+	if _, ok := callOnce["data"]; !ok {
+		t.Error("callOnce.data missing")
+	}
+	if _, ok := callOnce["fee"]; !ok {
+		t.Error("callOnce.fee missing")
+	}
+}
+
+// TestE2E_DeactivateInstructionTypedData tests DeactivateInstruction action TypedData generation
+func TestE2E_DeactivateInstructionTypedData(t *testing.T) {
+	encodedBytes := common.FromHex(validDeactivateInstructionEncoded)
+	instruction := mockBuildInstruction(encodedBytes, "DeactivateInstruction")
+	chainID := big.NewInt(testChainID)
+	otimDelegate := common.HexToAddress(testOtimDelegateAddress)
+	typedData, err := BuildTypedDataForAction(ActionTypeDeactivateInstruction, instruction, chainID, otimDelegate)
+	if err != nil {
+		t.Fatalf("BuildTypedDataForAction failed: %v", err)
+	}
+
+	verifyTypedDataStructure(t, typedData, "Instruction")
+
+	domain, ok := typedData["domain"].(map[string]interface{})
+	if !ok {
+		t.Fatal("domain is not a map")
+	}
+	verifyDomain(t, domain)
+
+	types, ok := typedData["types"].(map[string]interface{})
+	if !ok {
+		t.Fatal("types is not a map")
+	}
+	verifyTypes(t, types, []string{"EIP712Domain", "Instruction", "DeactivateInstruction", "Fee"})
+
+	message, ok := typedData["message"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message is not a map")
+	}
+	verifyInstructionMessage(t, message)
+
+	deactivateInstruction, ok := message["deactivateInstruction"].(map[string]interface{})
+	if !ok {
+		t.Fatal("message.deactivateInstruction is not a map")
+	}
+	if _, ok := deactivateInstruction["instructionId"]; !ok {
+		t.Error("deactivateInstruction.instructionId missing")
+	}
+	if _, ok := deactivateInstruction["fee"]; !ok {
+		t.Error("deactivateInstruction.fee missing")
 	}
 }
 

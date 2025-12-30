@@ -196,15 +196,9 @@ func (c *Client) signInstructions(
 		}
 		
 
-		// Decode the arguments to get the typed struct
-		actionArgs, err := DecodeArguments(actionType, instr.Arguments)
-		if err != nil {
-			return nil, fmt.Errorf("decode arguments for instruction %d: %w", i, err)
-		}
-
-		// Build EIP-712 TypedData
+		// Build EIP-712 TypedData (which handles decoding internally)
 		chainID := big.NewInt(int64(instr.ChainID))
-		typedData, err := BuildTypedDataForAction(actionType, instr, actionArgs, chainID, c.otimDelegateAddr)
+		typedData, err := BuildTypedDataForAction(actionType, instr, chainID, c.otimDelegateAddr)
 		if err != nil {
 			return nil, fmt.Errorf("build typed data for instruction %d: %w", i, err)
 		}
