@@ -11,7 +11,6 @@ import (
 )
 
 // Test data: Known ABI-encoded structs
-// TODO: Replace these placeholder hex strings with actual encoded data from your other repo
 const (
 	// Sweep
 	validSweepEncoded = "0x0000000000000000000000002d1d989af240b673c84ceeb3e6279ea98a2cfd05000000000000000000000000000000000000000000000000000000012a05f200000000000000000000000000000000000000000000000000000000007735940000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
@@ -760,11 +759,41 @@ func TestDecodeArguments_TransferCCTP(t *testing.T) {
 				t.Errorf("Schedule.StartAt mismatch: got %s, want %s", got, tt.expectedStartAt)
 			}
 
+			startBy := scheduleValue.FieldByName("StartBy").Interface().(*big.Int)
+			if got := startBy.String(); got != tt.expectedStartBy {
+				t.Errorf("Schedule.StartBy mismatch: got %s, want %s", got, tt.expectedStartBy)
+			}
+
+			interval := scheduleValue.FieldByName("Interval").Interface().(*big.Int)
+			if got := interval.String(); got != tt.expectedInterval {
+				t.Errorf("Schedule.Interval mismatch: got %s, want %s", got, tt.expectedInterval)
+			}
+
+			timeout := scheduleValue.FieldByName("Timeout").Interface().(*big.Int)
+			if got := timeout.String(); got != tt.expectedTimeout {
+				t.Errorf("Schedule.Timeout mismatch: got %s, want %s", got, tt.expectedTimeout)
+			}
+
 			// Verify Fee
 			feeValue := getField("Fee")
 			feeToken := feeValue.FieldByName("Token").Interface().(common.Address)
 			if got := feeToken.Hex(); got != tt.expectedFeeToken {
 				t.Errorf("Fee.Token mismatch: got %s, want %s", got, tt.expectedFeeToken)
+			}
+
+			maxBaseFee := feeValue.FieldByName("MaxBaseFeePerGas").Interface().(*big.Int)
+			if got := maxBaseFee.String(); got != tt.expectedMaxBaseFee {
+				t.Errorf("Fee.MaxBaseFeePerGas mismatch: got %s, want %s", got, tt.expectedMaxBaseFee)
+			}
+
+			maxPriorityFee := feeValue.FieldByName("MaxPriorityFeePerGas").Interface().(*big.Int)
+			if got := maxPriorityFee.String(); got != tt.expectedMaxPriorityFee {
+				t.Errorf("Fee.MaxPriorityFeePerGas mismatch: got %s, want %s", got, tt.expectedMaxPriorityFee)
+			}
+
+			executionFee := feeValue.FieldByName("ExecutionFee").Interface().(*big.Int)
+			if got := executionFee.String(); got != tt.expectedExecutionFee {
+				t.Errorf("Fee.ExecutionFee mismatch: got %s, want %s", got, tt.expectedExecutionFee)
 			}
 		})
 	}
@@ -861,6 +890,21 @@ func TestDecodeArguments_SweepCCTP(t *testing.T) {
 			if got := feeToken.Hex(); got != tt.expectedFeeToken {
 				t.Errorf("Fee.Token mismatch: got %s, want %s", got, tt.expectedFeeToken)
 			}
+
+			maxBaseFee := feeValue.FieldByName("MaxBaseFeePerGas").Interface().(*big.Int)
+			if got := maxBaseFee.String(); got != tt.expectedMaxBaseFee {
+				t.Errorf("Fee.MaxBaseFeePerGas mismatch: got %s, want %s", got, tt.expectedMaxBaseFee)
+			}
+
+			maxPriorityFee := feeValue.FieldByName("MaxPriorityFeePerGas").Interface().(*big.Int)
+			if got := maxPriorityFee.String(); got != tt.expectedMaxPriorityFee {
+				t.Errorf("Fee.MaxPriorityFeePerGas mismatch: got %s, want %s", got, tt.expectedMaxPriorityFee)
+			}
+
+			executionFee := feeValue.FieldByName("ExecutionFee").Interface().(*big.Int)
+			if got := executionFee.String(); got != tt.expectedExecutionFee {
+				t.Errorf("Fee.ExecutionFee mismatch: got %s, want %s", got, tt.expectedExecutionFee)
+			}
 		})
 	}
 }
@@ -884,7 +928,7 @@ func TestDecodeArguments_SweepERC20(t *testing.T) {
 			name:                   "valid sweep erc20",
 			encodedHex:             validSweepERC20Encoded,
 			actionType:             ActionTypeSweepERC20,
-			expectedToken:          "0x2e234DAe75C793f67A35089C9d99245E1C58470b", // TODO: Update with expected values
+			expectedToken:          "0x2e234DAe75C793f67A35089C9d99245E1C58470b",
 			expectedTarget:         "0x2d1d989af240B673C84cEeb3E6279Ea98a2CFd05",
 			expectedThreshold:      "500",
 			expectedEndBalance:     "200",
@@ -1189,6 +1233,21 @@ func TestDecodeArguments_SweepUniswapV3(t *testing.T) {
 			feeToken := feeValue.FieldByName("Token").Interface().(common.Address)
 			if got := feeToken.Hex(); got != tt.expectedFeeToken {
 				t.Errorf("Fee.Token mismatch: got %s, want %s", got, tt.expectedFeeToken)
+			}
+
+			maxBaseFee := feeValue.FieldByName("MaxBaseFeePerGas").Interface().(*big.Int)
+			if got := maxBaseFee.String(); got != tt.expectedMaxBaseFee {
+				t.Errorf("Fee.MaxBaseFeePerGas mismatch: got %s, want %s", got, tt.expectedMaxBaseFee)
+			}
+
+			maxPriorityFee := feeValue.FieldByName("MaxPriorityFeePerGas").Interface().(*big.Int)
+			if got := maxPriorityFee.String(); got != tt.expectedMaxPriorityFee {
+				t.Errorf("Fee.MaxPriorityFeePerGas mismatch: got %s, want %s", got, tt.expectedMaxPriorityFee)
+			}
+
+			executionFee := feeValue.FieldByName("ExecutionFee").Interface().(*big.Int)
+			if got := executionFee.String(); got != tt.expectedExecutionFee {
+				t.Errorf("Fee.ExecutionFee mismatch: got %s, want %s", got, tt.expectedExecutionFee)
 			}
 		})
 	}
@@ -1643,6 +1702,21 @@ func TestDecodeArguments_UniswapV3ExactInput(t *testing.T) {
 			feeToken := feeValue.FieldByName("Token").Interface().(common.Address)
 			if got := feeToken.Hex(); got != tt.expectedFeeToken {
 				t.Errorf("Fee.Token mismatch: got %s, want %s", got, tt.expectedFeeToken)
+			}
+
+			maxBaseFee := feeValue.FieldByName("MaxBaseFeePerGas").Interface().(*big.Int)
+			if got := maxBaseFee.String(); got != tt.expectedMaxBaseFee {
+				t.Errorf("Fee.MaxBaseFeePerGas mismatch: got %s, want %s", got, tt.expectedMaxBaseFee)
+			}
+
+			maxPriorityFee := feeValue.FieldByName("MaxPriorityFeePerGas").Interface().(*big.Int)
+			if got := maxPriorityFee.String(); got != tt.expectedMaxPriorityFee {
+				t.Errorf("Fee.MaxPriorityFeePerGas mismatch: got %s, want %s", got, tt.expectedMaxPriorityFee)
+			}
+
+			executionFee := feeValue.FieldByName("ExecutionFee").Interface().(*big.Int)
+			if got := executionFee.String(); got != tt.expectedExecutionFee {
+				t.Errorf("Fee.ExecutionFee mismatch: got %s, want %s", got, tt.expectedExecutionFee)
 			}
 		})
 	}
