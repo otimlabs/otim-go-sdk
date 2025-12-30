@@ -192,12 +192,77 @@ func feeToMap(fee interface{}) map[string]interface{} {
 		maxBaseFeePerGas = f.MaxBaseFeePerGas
 		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
 		executionFee = f.ExecutionFee
-	case sweepaction.IOtimFeeFee:
+	case transferonceaction.IOtimFeeFee:
+		token = f.Token
+		maxBaseFeePerGas = f.MaxBaseFeePerGas
+		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
+		executionFee = f.ExecutionFee
+	case transfererc20action.IOtimFeeFee:
+		token = f.Token
+		maxBaseFeePerGas = f.MaxBaseFeePerGas
+		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
+		executionFee = f.ExecutionFee
+	case transfererc20onceaction.IOtimFeeFee:
+		token = f.Token
+		maxBaseFeePerGas = f.MaxBaseFeePerGas
+		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
+		executionFee = f.ExecutionFee
+	case sweepcctpaction.IOtimFeeFee:
+		token = f.Token
+		maxBaseFeePerGas = f.MaxBaseFeePerGas
+		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
+		executionFee = f.ExecutionFee
+	case sweeperc20action.IOtimFeeFee:
 		token = f.Token
 		maxBaseFeePerGas = f.MaxBaseFeePerGas
 		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
 		executionFee = f.ExecutionFee
 	case refuelaction.IOtimFeeFee:
+		token = f.Token
+		maxBaseFeePerGas = f.MaxBaseFeePerGas
+		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
+		executionFee = f.ExecutionFee
+	case refuelerc20action.IOtimFeeFee:
+		token = f.Token
+		maxBaseFeePerGas = f.MaxBaseFeePerGas
+		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
+		executionFee = f.ExecutionFee
+	case uniswapv3exactinputaction.IOtimFeeFee:
+		token = f.Token
+		maxBaseFeePerGas = f.MaxBaseFeePerGas
+		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
+		executionFee = f.ExecutionFee
+	case sweepuniswapv3action.IOtimFeeFee:
+		token = f.Token
+		maxBaseFeePerGas = f.MaxBaseFeePerGas
+		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
+		executionFee = f.ExecutionFee
+	case depositerc4626action.IOtimFeeFee:
+		token = f.Token
+		maxBaseFeePerGas = f.MaxBaseFeePerGas
+		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
+		executionFee = f.ExecutionFee
+	case withdrawerc4626action.IOtimFeeFee:
+		token = f.Token
+		maxBaseFeePerGas = f.MaxBaseFeePerGas
+		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
+		executionFee = f.ExecutionFee
+	case sweepdepositerc4626action.IOtimFeeFee:
+		token = f.Token
+		maxBaseFeePerGas = f.MaxBaseFeePerGas
+		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
+		executionFee = f.ExecutionFee
+	case sweepwithdrawerc4626action.IOtimFeeFee:
+		token = f.Token
+		maxBaseFeePerGas = f.MaxBaseFeePerGas
+		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
+		executionFee = f.ExecutionFee
+	case callonceaction.IOtimFeeFee:
+		token = f.Token
+		maxBaseFeePerGas = f.MaxBaseFeePerGas
+		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
+		executionFee = f.ExecutionFee
+	case deactivateinstructionaction.IOtimFeeFee:
 		token = f.Token
 		maxBaseFeePerGas = f.MaxBaseFeePerGas
 		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
@@ -227,6 +292,26 @@ func scheduleToMap(schedule interface{}) map[string]interface{} {
 		startBy = s.StartBy
 		interval = s.Interval
 		timeout = s.Timeout
+	case transfererc20action.IIntervalSchedule:
+		startAt = s.StartAt
+		startBy = s.StartBy
+		interval = s.Interval
+		timeout = s.Timeout
+	case uniswapv3exactinputaction.IIntervalSchedule:
+		startAt = s.StartAt
+		startBy = s.StartBy
+		interval = s.Interval
+		timeout = s.Timeout
+	case depositerc4626action.IIntervalSchedule:
+		startAt = s.StartAt
+		startBy = s.StartBy
+		interval = s.Interval
+		timeout = s.Timeout
+	case withdrawerc4626action.IIntervalSchedule:
+		startAt = s.StartAt
+		startBy = s.StartBy
+		interval = s.Interval
+		timeout = s.Timeout
 	// Add other schedule types as needed - they all have the same structure
 	default:
 		return map[string]interface{}{}
@@ -241,6 +326,29 @@ func scheduleToMap(schedule interface{}) map[string]interface{} {
 }
 
 // Fee type definition for EIP-712
+// EIP712Domain type definition for EIP-712
+func eip712DomainTypeDefinition() []map[string]string {
+	return []map[string]string{
+		{"name": "name", "type": "string"},
+		{"name": "version", "type": "string"},
+		{"name": "chainId", "type": "uint256"},
+		{"name": "verifyingContract", "type": "address"},
+		{"name": "salt", "type": "bytes32"},
+	}
+}
+
+// instructionTypeDefinition creates an Instruction type definition with a specific action field
+// actionFieldName is the name of the action-specific field (e.g., "transfer", "sweep", etc.)
+// actionTypeName is the type of the action field (e.g., "Transfer", "Sweep", etc.)
+func instructionTypeDefinition(actionFieldName, actionTypeName string) []map[string]string {
+	return []map[string]string{
+		{"name": "salt", "type": "uint256"},
+		{"name": "maxExecutions", "type": "uint256"},
+		{"name": "action", "type": "address"},
+		{"name": actionFieldName, "type": actionTypeName},
+	}
+}
+
 func feeTypeDefinition() []map[string]string {
 	return []map[string]string{
 		{"name": "token", "type": "address"},
@@ -269,18 +377,8 @@ func buildTransferInstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "transfer", "type": "Transfer"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("transfer", "Transfer"),
 			"Transfer": []map[string]string{
 				{"name": "target", "type": "address"},
 				{"name": "value", "type": "uint256"},
@@ -317,18 +415,8 @@ func buildTransferOnceInstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "transferOnce", "type": "TransferOnce"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("transferOnce", "TransferOnce"),
 			"TransferOnce": []map[string]string{
 				{"name": "target", "type": "address"},
 				{"name": "value", "type": "uint256"},
@@ -362,18 +450,8 @@ func buildSweepInstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "sweep", "type": "Sweep"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("sweep", "Sweep"),
 			"Sweep": []map[string]string{
 				{"name": "target", "type": "address"},
 				{"name": "threshold", "type": "uint256"},
@@ -409,18 +487,8 @@ func buildRefuelInstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "refuel", "type": "Refuel"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("refuel", "Refuel"),
 			"Refuel": []map[string]string{
 				{"name": "target", "type": "address"},
 				{"name": "threshold", "type": "uint256"},
@@ -456,18 +524,8 @@ func buildTransferERC20InstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "transferERC20", "type": "TransferERC20"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("transferERC20", "TransferERC20"),
 			"TransferERC20": []map[string]string{
 				{"name": "token", "type": "address"},
 				{"name": "target", "type": "address"},
@@ -504,18 +562,8 @@ func buildTransferERC20OnceInstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "transferERC20Once", "type": "TransferERC20Once"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("transferERC20Once", "TransferERC20Once"),
 			"TransferERC20Once": []map[string]string{
 				{"name": "token", "type": "address"},
 				{"name": "target", "type": "address"},
@@ -549,18 +597,8 @@ func buildSweepERC20InstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "sweepERC20", "type": "SweepERC20"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("sweepERC20", "SweepERC20"),
 			"SweepERC20": []map[string]string{
 				{"name": "token", "type": "address"},
 				{"name": "target", "type": "address"},
@@ -596,18 +634,8 @@ func buildRefuelERC20InstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "refuelERC20", "type": "RefuelERC20"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("refuelERC20", "RefuelERC20"),
 			"RefuelERC20": []map[string]string{
 				{"name": "token", "type": "address"},
 				{"name": "target", "type": "address"},
@@ -643,18 +671,8 @@ func buildTransferCCTPInstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "transferCCTP", "type": "TransferCCTP"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("transferCCTP", "TransferCCTP"),
 			"TransferCCTP": []map[string]string{
 				{"name": "token", "type": "address"},
 				{"name": "amount", "type": "uint256"},
@@ -693,18 +711,8 @@ func buildSweepCCTPInstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "sweepCCTP", "type": "SweepCCTP"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("sweepCCTP", "SweepCCTP"),
 			"SweepCCTP": []map[string]string{
 				{"name": "token", "type": "address"},
 				{"name": "threshold", "type": "uint256"},
@@ -742,18 +750,8 @@ func buildUniswapV3ExactInputInstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "uniswapV3ExactInput", "type": "UniswapV3ExactInput"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("uniswapV3ExactInput", "UniswapV3ExactInput"),
 			"UniswapV3ExactInput": []map[string]string{
 				{"name": "recipient", "type": "address"},
 				{"name": "tokenIn", "type": "address"},
@@ -800,18 +798,8 @@ func buildSweepUniswapV3InstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "sweepUniswapV3", "type": "SweepUniswapV3"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("sweepUniswapV3", "SweepUniswapV3"),
 			"SweepUniswapV3": []map[string]string{
 				{"name": "recipient", "type": "address"},
 				{"name": "tokenIn", "type": "address"},
@@ -857,18 +845,8 @@ func buildDepositERC4626InstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "depositERC4626", "type": "DepositERC4626"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("depositERC4626", "DepositERC4626"),
 			"DepositERC4626": []map[string]string{
 				{"name": "vault", "type": "address"},
 				{"name": "recipient", "type": "address"},
@@ -909,18 +887,8 @@ func buildWithdrawERC4626InstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "withdrawERC4626", "type": "WithdrawERC4626"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("withdrawERC4626", "WithdrawERC4626"),
 			"WithdrawERC4626": []map[string]string{
 				{"name": "vault", "type": "address"},
 				{"name": "recipient", "type": "address"},
@@ -959,18 +927,8 @@ func buildSweepDepositERC4626InstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "sweepDepositERC4626", "type": "SweepDepositERC4626"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("sweepDepositERC4626", "SweepDepositERC4626"),
 			"SweepDepositERC4626": []map[string]string{
 				{"name": "vault", "type": "address"},
 				{"name": "recipient", "type": "address"},
@@ -1010,18 +968,8 @@ func buildSweepWithdrawERC4626InstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "sweepWithdrawERC4626", "type": "SweepWithdrawERC4626"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("sweepWithdrawERC4626", "SweepWithdrawERC4626"),
 			"SweepWithdrawERC4626": []map[string]string{
 				{"name": "vault", "type": "address"},
 				{"name": "recipient", "type": "address"},
@@ -1059,18 +1007,8 @@ func buildCallOnceInstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "callOnce", "type": "CallOnce"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("callOnce", "CallOnce"),
 			"CallOnce": []map[string]string{
 				{"name": "target", "type": "address"},
 				{"name": "allowFailure", "type": "bool"},
@@ -1112,18 +1050,8 @@ func buildDeactivateInstructionInstructionTypedData(
 ) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"types": map[string]interface{}{
-			"EIP712Domain": []map[string]string{
-				{"name": "name", "type": "string"},
-				{"name": "version", "type": "string"},
-				{"name": "chainId", "type": "uint256"},
-				{"name": "verifyingContract", "type": "address"},
-			},
-			"Instruction": []map[string]string{
-				{"name": "salt", "type": "uint256"},
-				{"name": "maxExecutions", "type": "uint256"},
-				{"name": "action", "type": "address"},
-				{"name": "deactivateInstruction", "type": "DeactivateInstruction"},
-			},
+			"EIP712Domain": eip712DomainTypeDefinition(),
+			"Instruction":  instructionTypeDefinition("deactivateInstruction", "DeactivateInstruction"),
 			"DeactivateInstruction": []map[string]string{
 				{"name": "instructionId", "type": "bytes32"},
 				{"name": "fee", "type": "Fee"},
@@ -1237,4 +1165,3 @@ func DecodeArguments(actionType ActionType, arguments []byte) (interface{}, erro
 	// Return the first (and only) value
 	return values[0], nil
 }
-
