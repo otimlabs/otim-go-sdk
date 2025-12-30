@@ -1127,21 +1127,24 @@ func DecodeArguments(actionType ActionType, arguments []byte) (interface{}, erro
 
 	// Find the `hash` method that takes the action struct as input
 	// This method has the complete struct type definition with all components
+	// Note: When Solidity functions are overloaded, go-ethereum names them hash, hash0, hash1, etc.
 	var structArgument *abi.Argument
 	
-	// Look through all methods named "hash" to find the one with the action struct
+	// Look through all methods starting with "hash" to find the action struct
+	// Filter out nested structs like Schedule and Fee by checking the parameter name
 	for _, method := range parsedABI.Methods {
-		if method.Name == "hash" && len(method.Inputs) == 1 {
+		if strings.HasPrefix(method.Name, "hash") {
 			arg := &method.Inputs[0]
-			// Check if this is a tuple (struct) type and not a simple type
-			if arg.Type.T == abi.TupleTy {
-				// This is likely our action struct
-				// We can identify it by checking if it has multiple components
-				if len(arg.Type.TupleElems) > 2 {
-					structArgument = arg
-					break
-				}
+			
+			// Skip nested structs - we want the main action struct
+			// Nested structs typically have names like "schedule", "fee", etc.
+			paramName := strings.ToLower(arg.Name)
+			if paramName == "schedule" || paramName == "fee" {
+				continue
 			}
+			
+			structArgument = arg
+			break
 		}
 	}
 
