@@ -268,6 +268,16 @@ func feeToMap(fee interface{}) map[string]interface{} {
 		maxBaseFeePerGas = f.MaxBaseFeePerGas
 		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
 		executionFee = f.ExecutionFee
+	case transfercctpaction.IOtimFeeFee:
+		token = f.Token
+		maxBaseFeePerGas = f.MaxBaseFeePerGas
+		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
+		executionFee = f.ExecutionFee
+	case sweepaction.IOtimFeeFee:
+		token = f.Token
+		maxBaseFeePerGas = f.MaxBaseFeePerGas
+		maxPriorityFeePerGas = f.MaxPriorityFeePerGas
+		executionFee = f.ExecutionFee
 	case sweepcctpaction.IOtimFeeFee:
 		token = f.Token
 		maxBaseFeePerGas = f.MaxBaseFeePerGas
@@ -354,6 +364,11 @@ func scheduleToMap(schedule interface{}) map[string]interface{} {
 		interval = s.Interval
 		timeout = s.Timeout
 	case transfererc20action.IIntervalSchedule:
+		startAt = s.StartAt
+		startBy = s.StartBy
+		interval = s.Interval
+		timeout = s.Timeout
+	case transfercctpaction.IIntervalSchedule:
 		startAt = s.StartAt
 		startBy = s.StartBy
 		interval = s.Interval
