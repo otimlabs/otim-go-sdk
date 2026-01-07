@@ -80,15 +80,9 @@ func (c *Client) BuildSettlementOrchestration(
 func (c *Client) NewOrchestration(
 	ctx context.Context,
 	req *NewOrchestrationRequest,
-) (*BuildOrchestrationResponse, error) {
-
-	var result BuildOrchestrationResponse
-	if err := c.postJSON(ctx, "/orchestration/new", req, &result); err != nil {
-		return nil, err
-	}
-	return &result, nil
+) error {
+	return c.postJSON(ctx, "/orchestration/new", req, nil)
 }
-
 
 
 // NewOrchestrationFromBuild creates a NewOrchestrationRequest from a BuildOrchestrationResponse
