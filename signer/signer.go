@@ -45,12 +45,21 @@ func SigFromTurnkeyResult(res *models.SignRawPayloadResult) (*Signature, error) 
 		return nil, fmt.Errorf("parse V: %w", err)
 	}
 
-	// R and S are hex strings (0x-prefixed); convert to uint256.Int
-	r, err := uint256.FromHex(*res.R)
+	// R and S are hex strings; add 0x prefix if missing for uint256.FromHex
+	rHex := *res.R
+	if len(rHex) < 2 || rHex[:2] != "0x" {
+		rHex = "0x" + rHex
+	}
+	sHex := *res.S
+	if len(sHex) < 2 || sHex[:2] != "0x" {
+		sHex = "0x" + sHex
+	}
+
+	r, err := uint256.FromHex(rHex)
 	if err != nil {
 		return nil, fmt.Errorf("parse R: %w", err)
 	}
-	s, err := uint256.FromHex(*res.S)
+	s, err := uint256.FromHex(sHex)
 	if err != nil {
 		return nil, fmt.Errorf("parse S: %w", err)
 	}

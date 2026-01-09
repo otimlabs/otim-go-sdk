@@ -35,7 +35,7 @@ type BuildInstructionResponse struct {
 	Salt          U256           `json:"salt"`
 	MaxExecutions U256           `json:"maxExecutions"`
 	Action        common.Address `json:"action"`
-	Arguments     []byte         `json:"arguments"`
+	Arguments     hexutil.Bytes  `json:"arguments"`
 	ActionName    string         `json:"actionName"`
 }
 
@@ -48,14 +48,20 @@ type BuildOrchestrationResponse struct {
 	Instructions           []BuildInstructionResponse `json:"instructions"`
 }
 
+type Signature struct {
+	V uint8  `json:"v"`
+	R string `json:"r"`
+	S string `json:"s"`
+}
+
 type NewInstructionRequest struct {
 	Address             common.Address `json:"address"`
 	ChainID             ChainID        `json:"chainId"`
 	Salt                U256           `json:"salt"`
 	MaxExecutions       U256           `json:"maxExecutions"`
 	Action              common.Address `json:"action"`
-	Arguments           []byte         `json:"arguments"`
-	ActivationSignature []byte         `json:"activationSignature"`
+	Arguments           hexutil.Bytes  `json:"arguments"`
+	ActivationSignature Signature      `json:"activationSignature"`
 	Nickname            *string        `json:"nickname,omitempty"`
 }
 
@@ -83,7 +89,6 @@ func (c *Client) NewOrchestration(
 ) error {
 	return c.postJSON(ctx, "/orchestration/new", req, nil)
 }
-
 
 // NewOrchestrationFromBuild creates a NewOrchestrationRequest from a BuildOrchestrationResponse
 // by signing the authorization and all instructions with EIP-712 signatures via Turnkey.
@@ -123,12 +128,14 @@ func (c *Client) NewOrchestrationFromBuild(
 		return nil, fmt.Errorf("sign completion instructions: %w", err)
 	}
 
-	return &NewOrchestrationRequest{
+	result := &NewOrchestrationRequest{
 		RequestID:              buildOrchestrationResponse.RequestID,
 		SignedAuthorization:    hexutil.Encode(signedAuthorization),
 		CompletionInstructions: completionInstructions,
 		Instructions:           instructions,
-	}, nil
+	}
+
+	return result, nil
 }
 
 // signAuthorization creates and signs an EIP-7702 authorization, returning the RLP-encoded result
@@ -199,23 +206,19 @@ func (c *Client) signInstructions(
 	instructions := make([]NewInstructionRequest, len(buildInstructions))
 	for i, instr := range buildInstructions {
 		sig := signatures[i]
-		
-		// Pack signature into 65-byte format: R (32 bytes) || S (32 bytes) || V (1 byte)
-		sigBytes := make([]byte, 65)
-		rBytes := sig.R.Bytes32()
-		sBytes := sig.S.Bytes32()
-		copy(sigBytes[0:32], rBytes[:])
-		copy(sigBytes[32:64], sBytes[:])
-		sigBytes[64] = sig.V
 
 		instructions[i] = NewInstructionRequest{
-			Address:             instr.Address,
-			ChainID:             instr.ChainID,
-			Salt:                instr.Salt,
-			MaxExecutions:       instr.MaxExecutions,
-			Action:              instr.Action,
-			Arguments:           instr.Arguments,
-			ActivationSignature: sigBytes,
+			Address:       instr.Address,
+			ChainID:       instr.ChainID,
+			Salt:          instr.Salt,
+			MaxExecutions: instr.MaxExecutions,
+			Action:        instr.Action,
+			Arguments:     instr.Arguments,
+			ActivationSignature: Signature{
+				V: sig.V,
+				R: sig.R.Hex(),
+				S: sig.S.Hex(),
+			},
 		}
 	}
 

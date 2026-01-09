@@ -16,32 +16,32 @@ import (
 const (
 	// Sweep
 	validSweepEncoded = "0x0000000000000000000000002d1d989af240b673c84ceeb3e6279ea98a2cfd05000000000000000000000000000000000000000000000000000000012a05f200000000000000000000000000000000000000000000000000000000007735940000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-	
+
 	// Transfer Actions
-	validTransferEncoded         = "0x0000000000000000000000002d1d989af240b673c84ceeb3e6279ea98a2cfd05000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000052080000000000000000000000000000000000000000000000000000019b70833b0f0000000000000000000000000000000000000000000000000000019b708362200000000000000000000000000000000000000000000000000000000000008ca00000000000000000000000000000000000000000000000000000000000008ca00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-	validTransferOnceEncoded     = "0x0000000000000000000000002d1d989af240b673c84ceeb3e6279ea98a2cfd05000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000052080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-	validTransferERC20Encoded    = "0x0000000000000000000000002e234dae75c793f67a35089c9d99245e1c58470b0000000000000000000000002d1d989af240b673c84ceeb3e6279ea98a2cfd0500000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000019b708646cf0000000000000000000000000000000000000000000000000000019b70866de00000000000000000000000000000000000000000000000000000000000008ca00000000000000000000000000000000000000000000000000000000000008ca00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+	validTransferEncoded          = "0x0000000000000000000000002d1d989af240b673c84ceeb3e6279ea98a2cfd05000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000052080000000000000000000000000000000000000000000000000000019b70833b0f0000000000000000000000000000000000000000000000000000019b708362200000000000000000000000000000000000000000000000000000000000008ca00000000000000000000000000000000000000000000000000000000000008ca00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+	validTransferOnceEncoded      = "0x0000000000000000000000002d1d989af240b673c84ceeb3e6279ea98a2cfd05000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000052080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+	validTransferERC20Encoded     = "0x0000000000000000000000002e234dae75c793f67a35089c9d99245e1c58470b0000000000000000000000002d1d989af240b673c84ceeb3e6279ea98a2cfd0500000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000019b708646cf0000000000000000000000000000000000000000000000000000019b70866de00000000000000000000000000000000000000000000000000000000000008ca00000000000000000000000000000000000000000000000000000000000008ca00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	validTransferERC20OnceEncoded = "0x0000000000000000000000002e234dae75c793f67a35089c9d99245e1c58470b0000000000000000000000002d1d989af240b673c84ceeb3e6279ea98a2cfd0500000000000000000000000000000000000000000000000000000000000000640000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-	
+
 	// CCTP Actions
 	validTransferCCTPEncoded = "0x0000000000000000000000001c7d4b196cb0c7b01d743fbc6116a902379c72380000000000000000000000000000000000000000000000000000000005f5e1000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	validSweepCCTPEncoded    = "0x0000000000000000000000001c7d4b196cb0c7b01d743fbc6116a902379c7238000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000005f5e1000000000000000000000000000000000000000000000000000000000002faf0800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-	
+
 	// Sweep Actions
 	validSweepERC20Encoded           = "0x0000000000000000000000002e234dae75c793f67a35089c9d99245e1c58470b0000000000000000000000002d1d989af240b673c84ceeb3e6279ea98a2cfd0500000000000000000000000000000000000000000000000000000000000001f400000000000000000000000000000000000000000000000000000000000000c80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	validSweepUniswapV3Encoded       = "0x0000000000000000000000003af524037e28ce53933405a7753f520a0e4e5ae900000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c7d4b196cb0c7b01d743fbc6116a902379c723800000000000000000000000000000000000000000000000000000000000001f40000000000000000000000000000000000000000000000000000000077359400000000000000000000000000000000000000000000000000000000003b9aca000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000038400000000000000000000000000000000000000000000000000000000000003e80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	validSweepDepositERC4626Encoded  = "0x000000000000000000000000beef01735c132ada46aa9aa4c54623caa92a64cb0000000000000000000000003af524037e28ce53933405a7753f520a0e4e5ae90000000000000000000000000000000000000000000000000000000005f5e100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000005f5e1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	validSweepWithdrawERC4626Encoded = "0x000000000000000000000000beef01735c132ada46aa9aa4c54623caa92a64cb0000000000000000000000003af524037e28ce53933405a7753f520a0e4e5ae90000000000000000000000000000000000000000000000000000000002faf0800000000000000000000000000000000000000000000000000000000001312d0000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-	
+
 	// Refuel Actions
-	validRefuelEncoded     = "0x0000000000000000000000002d1d989af240b673c84ceeb3e6279ea98a2cfd050000000000000000000000000000000000000000000000000000000077359400000000000000000000000000000000000000000000000000000000012a05f20000000000000000000000000000000000000000000000000000000000000052080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+	validRefuelEncoded      = "0x0000000000000000000000002d1d989af240b673c84ceeb3e6279ea98a2cfd050000000000000000000000000000000000000000000000000000000077359400000000000000000000000000000000000000000000000000000000012a05f20000000000000000000000000000000000000000000000000000000000000052080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	validRefuelERC20Encoded = "0x0000000000000000000000002e234dae75c793f67a35089c9d99245e1c58470b0000000000000000000000002d1d989af240b673c84ceeb3e6279ea98a2cfd05000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000001f40000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-	
+
 	// DeFi Actions
 	validUniswapV3ExactInputEncoded = "0x0000000000000000000000003af524037e28ce53933405a7753f520a0e4e5ae900000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c7d4b196cb0c7b01d743fbc6116a902379c723800000000000000000000000000000000000000000000000000000000000001f40000000000000000000000000000000000000000000000000de0b6b3a76400000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000038400000000000000000000000000000000000000000000000000000000000001f40000000000000000000000000000000000000000000000000000000069541f2b000000000000000000000000000000000000000000000000000000006954463c0000000000000000000000000000000000000000000000000000000000008ca00000000000000000000000000000000000000000000000000000000000008ca00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	validDepositERC4626Encoded      = "0x000000000000000000000000beef01735c132ada46aa9aa4c54623caa92a64cb0000000000000000000000003af524037e28ce53933405a7753f520a0e4e5ae90000000000000000000000000000000000000000000000000000000005f5e10000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000005f5e10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	validWithdrawERC4626Encoded     = "0x000000000000000000000000beef01735c132ada46aa9aa4c54623caa92a64cb0000000000000000000000003af524037e28ce53933405a7753f520a0e4e5ae90000000000000000000000000000000000000000000000000000000005f5e100000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-	
+
 	// Utility Actions
 	validCallOnceEncoded              = "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000f62849f9a0b5bf2913b396098f7c7019b51a820a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006400000000000000000000000000000000000000000000000000000000000008fc00000000000000000000000000000000000000000000000000000000000002006bff20900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
 	validDeactivateInstructionEncoded = "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
@@ -49,27 +49,27 @@ const (
 
 // E2E Test constants for TypedData generation
 const (
-	testSaltHex = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
-	testMaxExecutions = 100
-	testActionAddress = "0x1111111111111111111111111111111111111111"
-	testChainID = 1
+	testSaltHex             = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+	testMaxExecutions       = 100
+	testActionAddress       = "0x1111111111111111111111111111111111111111"
+	testChainID             = 1
 	testOtimDelegateAddress = "0x2222222222222222222222222222222222222222"
 )
 
 func TestDecodeArguments_Sweep(t *testing.T) {
 	tests := []struct {
-		name                     string
-		encodedHex               string
-		actionType               ActionType
-		expectedTarget           string
-		expectedThreshold        string
-		expectedEndBalance       string
-		expectedGasLimit         string
-		expectedFeeToken         string
-		expectedMaxBaseFee       string
-		expectedMaxPriorityFee   string
-		expectedExecutionFee     string
-		wantErr                  bool
+		name                   string
+		encodedHex             string
+		actionType             ActionType
+		expectedTarget         string
+		expectedThreshold      string
+		expectedEndBalance     string
+		expectedGasLimit       string
+		expectedFeeToken       string
+		expectedMaxBaseFee     string
+		expectedMaxPriorityFee string
+		expectedExecutionFee   string
+		wantErr                bool
 	}{
 		{
 			name:                   "valid sweep with realistic values",
@@ -198,7 +198,7 @@ func getFieldHelper(t *testing.T, v reflect.Value, fieldName string) reflect.Val
 func mockBuildInstruction(arguments []byte, actionName string) BuildInstructionResponse {
 	saltBig := new(big.Int)
 	saltBig.SetString(testSaltHex[2:], 16) // Remove "0x" prefix
-	
+
 	return BuildInstructionResponse{
 		Address:       common.HexToAddress(testActionAddress),
 		ChainID:       ChainID(testChainID),
@@ -225,7 +225,7 @@ func verifyTypedDataStructure(t *testing.T, typedData map[string]interface{}, ex
 	if _, ok := typedData["message"]; !ok {
 		t.Error("TypedData missing 'message' field")
 	}
-	
+
 	// Check primaryType
 	if primaryType, ok := typedData["primaryType"].(string); !ok || primaryType != expectedPrimaryType {
 		t.Errorf("primaryType mismatch: got %v, want %s", typedData["primaryType"], expectedPrimaryType)
@@ -255,7 +255,7 @@ func verifyDomain(t *testing.T, domain map[string]interface{}) {
 func verifyInstructionMessage(t *testing.T, message map[string]interface{}) {
 	saltBig := new(big.Int)
 	saltBig.SetString(testSaltHex[2:], 16)
-	
+
 	if salt, ok := message["salt"].(string); !ok || salt != saltBig.String() {
 		t.Errorf("message.salt mismatch: got %v, want %s", message["salt"], saltBig.String())
 	}
@@ -279,22 +279,22 @@ func verifyTypes(t *testing.T, types map[string]interface{}, expectedTypes []str
 // compareTypedData does a deep comparison of two TypedData structures
 func compareTypedData(t *testing.T, expected, actual map[string]interface{}) {
 	t.Helper()
-	
+
 	// Compare primaryType
 	if expected["primaryType"] != actual["primaryType"] {
 		t.Errorf("primaryType mismatch: expected %v, got %v", expected["primaryType"], actual["primaryType"])
 	}
-	
+
 	// Compare domain
 	expectedDomain := expected["domain"].(map[string]interface{})
 	actualDomain := actual["domain"].(map[string]interface{})
 	compareMaps(t, "domain", expectedDomain, actualDomain)
-	
+
 	// Compare message
 	expectedMessage := expected["message"].(map[string]interface{})
 	actualMessage := actual["message"].(map[string]interface{})
 	compareMaps(t, "message", expectedMessage, actualMessage)
-	
+
 	// Compare types structure (just verify keys exist, not full structure)
 	expectedTypes := expected["types"].(map[string]interface{})
 	actualTypes := actual["types"].(map[string]interface{})
@@ -308,7 +308,7 @@ func compareTypedData(t *testing.T, expected, actual map[string]interface{}) {
 // compareMaps recursively compares two maps
 func compareMaps(t *testing.T, path string, expected, actual map[string]interface{}) {
 	t.Helper()
-	
+
 	// Check all expected keys exist and have correct values
 	for key, expectedValue := range expected {
 		actualValue, ok := actual[key]
@@ -316,10 +316,10 @@ func compareMaps(t *testing.T, path string, expected, actual map[string]interfac
 			t.Errorf("%s.%s missing in actual", path, key)
 			continue
 		}
-		
+
 		compareValues(t, path+"."+key, expectedValue, actualValue)
 	}
-	
+
 	// Check no extra keys in actual
 	for key := range actual {
 		if _, ok := expected[key]; !ok {
@@ -331,7 +331,7 @@ func compareMaps(t *testing.T, path string, expected, actual map[string]interfac
 // compareValues compares two values, handling nested maps
 func compareValues(t *testing.T, path string, expected, actual interface{}) {
 	t.Helper()
-	
+
 	switch expectedVal := expected.(type) {
 	case map[string]interface{}:
 		actualMap, ok := actual.(map[string]interface{})
@@ -373,7 +373,7 @@ func expectedDomain() map[string]interface{} {
 func expectedMessageBase() map[string]interface{} {
 	saltBig := new(big.Int)
 	saltBig.SetString(testSaltHex[2:], 16)
-	
+
 	return map[string]interface{}{
 		"salt":          saltBig.String(),
 		"maxExecutions": fmt.Sprintf("%d", testMaxExecutions),
@@ -849,40 +849,40 @@ func TestDecodeArguments_TransferERC20Once(t *testing.T) {
 
 func TestDecodeArguments_TransferCCTP(t *testing.T) {
 	tests := []struct {
-		name                          string
-		encodedHex                    string
-		actionType                    ActionType
-		expectedToken                 string
-		expectedAmount                string
-		expectedDestinationDomain     uint32
+		name                             string
+		encodedHex                       string
+		actionType                       ActionType
+		expectedToken                    string
+		expectedAmount                   string
+		expectedDestinationDomain        uint32
 		expectedDestinationMintRecipient string
-		expectedStartAt               string
-		expectedStartBy               string
-		expectedInterval              string
-		expectedTimeout               string
-		expectedFeeToken              string
-		expectedMaxBaseFee            string
-		expectedMaxPriorityFee        string
-		expectedExecutionFee          string
-		wantErr                       bool
+		expectedStartAt                  string
+		expectedStartBy                  string
+		expectedInterval                 string
+		expectedTimeout                  string
+		expectedFeeToken                 string
+		expectedMaxBaseFee               string
+		expectedMaxPriorityFee           string
+		expectedExecutionFee             string
+		wantErr                          bool
 	}{
 		{
-			name:                          "valid transfer cctp",
-			encodedHex:                    validTransferCCTPEncoded,
-			actionType:                    ActionTypeTransferCCTP,
-			expectedToken:                 "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
-			expectedAmount:                "100000000",
-			expectedDestinationDomain:     4,
+			name:                             "valid transfer cctp",
+			encodedHex:                       validTransferCCTPEncoded,
+			actionType:                       ActionTypeTransferCCTP,
+			expectedToken:                    "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+			expectedAmount:                   "100000000",
+			expectedDestinationDomain:        4,
 			expectedDestinationMintRecipient: "0x0000000000000000000000000000000000000000000000000000000000000001",
-			expectedStartAt:               "0",
-			expectedStartBy:               "0",
-			expectedInterval:              "0",
-			expectedTimeout:               "0",
-			expectedFeeToken:              "0x0000000000000000000000000000000000000000",
-			expectedMaxBaseFee:            "0",
-			expectedMaxPriorityFee:        "0",
-			expectedExecutionFee:          "0",
-			wantErr:                       false,
+			expectedStartAt:                  "0",
+			expectedStartBy:                  "0",
+			expectedInterval:                 "0",
+			expectedTimeout:                  "0",
+			expectedFeeToken:                 "0x0000000000000000000000000000000000000000",
+			expectedMaxBaseFee:               "0",
+			expectedMaxPriorityFee:           "0",
+			expectedExecutionFee:             "0",
+			wantErr:                          false,
 		},
 	}
 
@@ -980,34 +980,34 @@ func TestDecodeArguments_TransferCCTP(t *testing.T) {
 
 func TestDecodeArguments_SweepCCTP(t *testing.T) {
 	tests := []struct {
-		name                          string
-		encodedHex                    string
-		actionType                    ActionType
-		expectedToken                 string
-		expectedDestinationDomain     uint32
+		name                             string
+		encodedHex                       string
+		actionType                       ActionType
+		expectedToken                    string
+		expectedDestinationDomain        uint32
 		expectedDestinationMintRecipient string
-		expectedThreshold             string
-		expectedEndBalance            string
-		expectedFeeToken              string
-		expectedMaxBaseFee            string
-		expectedMaxPriorityFee        string
-		expectedExecutionFee          string
-		wantErr                       bool
+		expectedThreshold                string
+		expectedEndBalance               string
+		expectedFeeToken                 string
+		expectedMaxBaseFee               string
+		expectedMaxPriorityFee           string
+		expectedExecutionFee             string
+		wantErr                          bool
 	}{
 		{
-			name:                          "valid sweep cctp",
-			encodedHex:                    validSweepCCTPEncoded,
-			actionType:                    ActionTypeSweepCCTP,
-			expectedToken:                 "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
-			expectedDestinationDomain:     4,
+			name:                             "valid sweep cctp",
+			encodedHex:                       validSweepCCTPEncoded,
+			actionType:                       ActionTypeSweepCCTP,
+			expectedToken:                    "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+			expectedDestinationDomain:        4,
 			expectedDestinationMintRecipient: "0x0000000000000000000000000000000000000000000000000000000000000001",
-			expectedThreshold:             "100000000",
-			expectedEndBalance:            "50000000",
-			expectedFeeToken:              "0x0000000000000000000000000000000000000000",
-			expectedMaxBaseFee:            "0",
-			expectedMaxPriorityFee:        "0",
-			expectedExecutionFee:          "0",
-			wantErr:                       false,
+			expectedThreshold:                "100000000",
+			expectedEndBalance:               "50000000",
+			expectedFeeToken:                 "0x0000000000000000000000000000000000000000",
+			expectedMaxBaseFee:               "0",
+			expectedMaxPriorityFee:           "0",
+			expectedExecutionFee:             "0",
+			wantErr:                          false,
 		},
 	}
 
@@ -1291,42 +1291,42 @@ func TestDecodeArguments_RefuelERC20(t *testing.T) {
 
 func TestDecodeArguments_SweepUniswapV3(t *testing.T) {
 	tests := []struct {
-		name                   string
-		encodedHex             string
-		actionType             ActionType
-		expectedRecipient      string
-		expectedTokenIn        string
-		expectedTokenOut       string
-		expectedFeeTier        string
-		expectedThreshold      string
-		expectedEndBalance     string
-		expectedFloorAmountOut   string
-		expectedMeanPriceLookBack string
+		name                         string
+		encodedHex                   string
+		actionType                   ActionType
+		expectedRecipient            string
+		expectedTokenIn              string
+		expectedTokenOut             string
+		expectedFeeTier              string
+		expectedThreshold            string
+		expectedEndBalance           string
+		expectedFloorAmountOut       string
+		expectedMeanPriceLookBack    string
 		expectedMaxPriceDeviationBPS string
-		expectedFeeToken       string
-		expectedMaxBaseFee     string
-		expectedMaxPriorityFee string
-		expectedExecutionFee   string
-		wantErr                bool
+		expectedFeeToken             string
+		expectedMaxBaseFee           string
+		expectedMaxPriorityFee       string
+		expectedExecutionFee         string
+		wantErr                      bool
 	}{
 		{
-			name:                   "valid sweep uniswap v3",
-			encodedHex:             validSweepUniswapV3Encoded,
-			actionType:             ActionTypeSweepUniswapV3,
-			expectedRecipient:      "0x3aF524037e28ce53933405A7753f520A0e4E5ae9",
-			expectedTokenIn:        "0x0000000000000000000000000000000000000000",
-			expectedTokenOut:       "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
-			expectedFeeTier:        "500",
-			expectedThreshold:      "2000000000",
-			expectedEndBalance:     "1000000000",
-			expectedFloorAmountOut:   "1",
-			expectedMeanPriceLookBack: "900",
+			name:                         "valid sweep uniswap v3",
+			encodedHex:                   validSweepUniswapV3Encoded,
+			actionType:                   ActionTypeSweepUniswapV3,
+			expectedRecipient:            "0x3aF524037e28ce53933405A7753f520A0e4E5ae9",
+			expectedTokenIn:              "0x0000000000000000000000000000000000000000",
+			expectedTokenOut:             "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+			expectedFeeTier:              "500",
+			expectedThreshold:            "2000000000",
+			expectedEndBalance:           "1000000000",
+			expectedFloorAmountOut:       "1",
+			expectedMeanPriceLookBack:    "900",
 			expectedMaxPriceDeviationBPS: "1000",
-			expectedFeeToken:       "0x0000000000000000000000000000000000000000",
-			expectedMaxBaseFee:     "0",
-			expectedMaxPriorityFee: "0",
-			expectedExecutionFee:   "0",
-			wantErr:                false,
+			expectedFeeToken:             "0x0000000000000000000000000000000000000000",
+			expectedMaxBaseFee:           "0",
+			expectedMaxPriorityFee:       "0",
+			expectedExecutionFee:         "0",
+			wantErr:                      false,
 		},
 	}
 
@@ -1751,48 +1751,48 @@ func TestDecodeArguments_Refuel(t *testing.T) {
 
 func TestDecodeArguments_UniswapV3ExactInput(t *testing.T) {
 	tests := []struct {
-		name                   string
-		encodedHex             string
-		actionType             ActionType
-		expectedRecipient      string
-		expectedTokenIn        string
-		expectedTokenOut       string
-		expectedFeeTier        string
-		expectedAmountIn       string
-		expectedFloorAmountOut   string
-		expectedMeanPriceLookBack string
+		name                         string
+		encodedHex                   string
+		actionType                   ActionType
+		expectedRecipient            string
+		expectedTokenIn              string
+		expectedTokenOut             string
+		expectedFeeTier              string
+		expectedAmountIn             string
+		expectedFloorAmountOut       string
+		expectedMeanPriceLookBack    string
 		expectedMaxPriceDeviationBPS string
-		expectedStartAt        string
-		expectedStartBy        string
-		expectedInterval       string
-		expectedTimeout        string
-		expectedFeeToken       string
-		expectedMaxBaseFee     string
-		expectedMaxPriorityFee string
-		expectedExecutionFee   string
-		wantErr                bool
+		expectedStartAt              string
+		expectedStartBy              string
+		expectedInterval             string
+		expectedTimeout              string
+		expectedFeeToken             string
+		expectedMaxBaseFee           string
+		expectedMaxPriorityFee       string
+		expectedExecutionFee         string
+		wantErr                      bool
 	}{
 		{
-			name:                   "valid uniswap v3 exact input",
-			encodedHex:             validUniswapV3ExactInputEncoded,
-			actionType:             ActionTypeUniswapV3ExactInput,
-			expectedRecipient:      "0x3aF524037e28ce53933405A7753f520A0e4E5ae9", // TODO: Update with expected values
-			expectedTokenIn:        "0x0000000000000000000000000000000000000000",
-			expectedTokenOut:       "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
-			expectedFeeTier:        "500",
-			expectedAmountIn:       "1000000000000000000",
-			expectedFloorAmountOut:   "1",
-			expectedMeanPriceLookBack: "900",
+			name:                         "valid uniswap v3 exact input",
+			encodedHex:                   validUniswapV3ExactInputEncoded,
+			actionType:                   ActionTypeUniswapV3ExactInput,
+			expectedRecipient:            "0x3aF524037e28ce53933405A7753f520A0e4E5ae9", // TODO: Update with expected values
+			expectedTokenIn:              "0x0000000000000000000000000000000000000000",
+			expectedTokenOut:             "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+			expectedFeeTier:              "500",
+			expectedAmountIn:             "1000000000000000000",
+			expectedFloorAmountOut:       "1",
+			expectedMeanPriceLookBack:    "900",
 			expectedMaxPriceDeviationBPS: "500",
-			expectedStartAt:        "1767120683",
-			expectedStartBy:        "1767130684",
-			expectedInterval:       "36000",
-			expectedTimeout:        "36000",
-			expectedFeeToken:       "0x0000000000000000000000000000000000000000",
-			expectedMaxBaseFee:     "0",
-			expectedMaxPriorityFee: "0",
-			expectedExecutionFee:   "0",
-			wantErr:                false,
+			expectedStartAt:              "1767120683",
+			expectedStartBy:              "1767130684",
+			expectedInterval:             "36000",
+			expectedTimeout:              "36000",
+			expectedFeeToken:             "0x0000000000000000000000000000000000000000",
+			expectedMaxBaseFee:           "0",
+			expectedMaxPriorityFee:       "0",
+			expectedExecutionFee:         "0",
+			wantErr:                      false,
 		},
 	}
 
@@ -2157,38 +2157,38 @@ func TestDecodeArguments_WithdrawERC4626(t *testing.T) {
 
 func TestDecodeArguments_CallOnce(t *testing.T) {
 	tests := []struct {
-		name                   string
-		encodedHex             string
-		actionType             ActionType
-		expectedTarget         string
-		expectedAllowFailure   bool
-		expectedValue          string
-		expectedGasLimit       string
+		name                    string
+		encodedHex              string
+		actionType              ActionType
+		expectedTarget          string
+		expectedAllowFailure    bool
+		expectedValue           string
+		expectedGasLimit        string
 		expectedReturnSizeLimit uint16
-	    expectedSelector       string
-		expectedData           string
-		expectedFeeToken       string
-		expectedMaxBaseFee     string
-		expectedMaxPriorityFee string
-		expectedExecutionFee   string
-		wantErr                bool
+		expectedSelector        string
+		expectedData            string
+		expectedFeeToken        string
+		expectedMaxBaseFee      string
+		expectedMaxPriorityFee  string
+		expectedExecutionFee    string
+		wantErr                 bool
 	}{
 		{
-			name:                   "valid call once",
-			encodedHex:             validCallOnceEncoded,
-			actionType:             ActionTypeCallOnce,
-			expectedTarget:         "0xF62849F9A0B5Bf2913b396098F7c7019b51A820a",
-			expectedAllowFailure:   false,
-			expectedValue:          "100",
-			expectedGasLimit:       "2300",
+			name:                    "valid call once",
+			encodedHex:              validCallOnceEncoded,
+			actionType:              ActionTypeCallOnce,
+			expectedTarget:          "0xF62849F9A0B5Bf2913b396098F7c7019b51A820a",
+			expectedAllowFailure:    false,
+			expectedValue:           "100",
+			expectedGasLimit:        "2300",
 			expectedReturnSizeLimit: 512,
-			expectedSelector:       "0x6bff2090",
-			expectedData:           "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000",
-			expectedFeeToken:       "0x0000000000000000000000000000000000000000",
-			expectedMaxBaseFee:     "0",
-			expectedMaxPriorityFee: "0",
-			expectedExecutionFee:   "0",
-			wantErr:                false,
+			expectedSelector:        "0x6bff2090",
+			expectedData:            "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000",
+			expectedFeeToken:        "0x0000000000000000000000000000000000000000",
+			expectedMaxBaseFee:      "0",
+			expectedMaxPriorityFee:  "0",
+			expectedExecutionFee:    "0",
+			wantErr:                 false,
 		},
 	}
 
@@ -2393,7 +2393,7 @@ func TestE2E_TransferTypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
@@ -2433,7 +2433,7 @@ func TestE2E_TransferOnceTypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
@@ -2477,7 +2477,7 @@ func TestE2E_TransferERC20TypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
@@ -2516,16 +2516,16 @@ func TestE2E_TransferERC20OnceTypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
-			"EIP712Domain":       "present",
-			"Instruction":        "present",
+			"EIP712Domain":      "present",
+			"Instruction":       "present",
 			"TransferERC20Once": "present",
-			"Fee":                "present",
+			"Fee":               "present",
 		},
 	}
 
@@ -2544,10 +2544,10 @@ func TestE2E_TransferCCTPTypedData(t *testing.T) {
 
 	message := expectedMessageBase()
 	message["transferCCTP"] = map[string]interface{}{
-		"token":                      "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
-		"amount":                     "100000000",
-		"destinationDomain":          "4",
-		"destinationMintRecipient":   "0x0000000000000000000000000000000000000000000000000000000000000001",
+		"token":                    "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+		"amount":                   "100000000",
+		"destinationDomain":        "4",
+		"destinationMintRecipient": "0x0000000000000000000000000000000000000000000000000000000000000001",
 		"schedule": map[string]interface{}{
 			"startAt":  "0",
 			"startBy":  "0",
@@ -2561,7 +2561,7 @@ func TestE2E_TransferCCTPTypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
@@ -2590,11 +2590,11 @@ func TestE2E_SweepCCTPTypedData(t *testing.T) {
 
 	message := expectedMessageBase()
 	message["sweepCCTP"] = map[string]interface{}{
-		"token":                     "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
-		"threshold":                 "100000000",
-		"endBalance":                "50000000",
-		"destinationDomain":         "4",
-		"destinationMintRecipient":  "0x0000000000000000000000000000000000000000000000000000000000000001",
+		"token":                    "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+		"threshold":                "100000000",
+		"endBalance":               "50000000",
+		"destinationDomain":        "4",
+		"destinationMintRecipient": "0x0000000000000000000000000000000000000000000000000000000000000001",
 		"fee": map[string]interface{}{
 			"token":                "0x0000000000000000000000000000000000000000",
 			"maxBaseFeePerGas":     "0",
@@ -2602,7 +2602,7 @@ func TestE2E_SweepCCTPTypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
@@ -2641,7 +2641,7 @@ func TestE2E_SweepTypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
@@ -2680,7 +2680,7 @@ func TestE2E_SweepERC20TypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
@@ -2708,15 +2708,15 @@ func TestE2E_SweepUniswapV3TypedData(t *testing.T) {
 
 	message := expectedMessageBase()
 	message["sweepUniswapV3"] = map[string]interface{}{
-		"recipient":              "0x3aF524037e28ce53933405A7753f520A0e4E5ae9",
-		"tokenIn":                "0x0000000000000000000000000000000000000000",
-		"tokenOut":               "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
-		"feeTier":                "500",
-		"threshold":              "2000000000",
-		"endBalance":             "1000000000",
-		"floorAmountOut":         "1",
-		"meanPriceLookBack":      "900",
-		"maxPriceDeviationBPS":   "1000",
+		"recipient":            "0x3aF524037e28ce53933405A7753f520A0e4E5ae9",
+		"tokenIn":              "0x0000000000000000000000000000000000000000",
+		"tokenOut":             "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+		"feeTier":              "500",
+		"threshold":            "2000000000",
+		"endBalance":           "1000000000",
+		"floorAmountOut":       "1",
+		"meanPriceLookBack":    "900",
+		"maxPriceDeviationBPS": "1000",
 		"fee": map[string]interface{}{
 			"token":                "0x0000000000000000000000000000000000000000",
 			"maxBaseFeePerGas":     "0",
@@ -2724,7 +2724,7 @@ func TestE2E_SweepUniswapV3TypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
@@ -2765,16 +2765,16 @@ func TestE2E_SweepDepositERC4626TypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
-			"EIP712Domain":         "present",
-			"Instruction":          "present",
+			"EIP712Domain":        "present",
+			"Instruction":         "present",
 			"SweepDepositERC4626": "present",
-			"Fee":                  "present",
+			"Fee":                 "present",
 		},
 	}
 
@@ -2805,16 +2805,16 @@ func TestE2E_SweepWithdrawERC4626TypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
 		"message":     message,
 		"types": map[string]interface{}{
-			"EIP712Domain":          "present",
-			"Instruction":           "present",
+			"EIP712Domain":         "present",
+			"Instruction":          "present",
 			"SweepWithdrawERC4626": "present",
-			"Fee":                   "present",
+			"Fee":                  "present",
 		},
 	}
 
@@ -2844,7 +2844,7 @@ func TestE2E_RefuelTypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
@@ -2883,7 +2883,7 @@ func TestE2E_RefuelERC20TypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
@@ -2911,14 +2911,14 @@ func TestE2E_UniswapV3ExactInputTypedData(t *testing.T) {
 
 	message := expectedMessageBase()
 	message["uniswapV3ExactInput"] = map[string]interface{}{
-		"recipient":              "0x3aF524037e28ce53933405A7753f520A0e4E5ae9",
-		"tokenIn":                "0x0000000000000000000000000000000000000000",
-		"tokenOut":               "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
-		"feeTier":                "500",
-		"amountIn":               "1000000000000000000",
-		"floorAmountOut":         "1",
-		"meanPriceLookBack":      "900",
-		"maxPriceDeviationBPS":   "500",
+		"recipient":            "0x3aF524037e28ce53933405A7753f520A0e4E5ae9",
+		"tokenIn":              "0x0000000000000000000000000000000000000000",
+		"tokenOut":             "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+		"feeTier":              "500",
+		"amountIn":             "1000000000000000000",
+		"floorAmountOut":       "1",
+		"meanPriceLookBack":    "900",
+		"maxPriceDeviationBPS": "500",
 		"schedule": map[string]interface{}{
 			"startAt":  "1767120683",
 			"startBy":  "1767130684",
@@ -2932,7 +2932,7 @@ func TestE2E_UniswapV3ExactInputTypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
@@ -2979,7 +2979,7 @@ func TestE2E_DepositERC4626TypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
@@ -3025,7 +3025,7 @@ func TestE2E_WithdrawERC4626TypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
@@ -3068,7 +3068,7 @@ func TestE2E_CallOnceTypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
@@ -3104,7 +3104,7 @@ func TestE2E_DeactivateInstructionTypedData(t *testing.T) {
 			"executionFee":         "0",
 		},
 	}
-	
+
 	expected := map[string]interface{}{
 		"primaryType": "Instruction",
 		"domain":      expectedDomain(),
@@ -3119,4 +3119,3 @@ func TestE2E_DeactivateInstructionTypedData(t *testing.T) {
 
 	compareTypedData(t, expected, typedData)
 }
-
