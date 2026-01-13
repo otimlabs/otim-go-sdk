@@ -1,0 +1,52 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go build artifacts
+*.test
+*.out
+
+# Go workspace files
+go.work
+go.work.sum
+
+# Vendor (if you don't commit vendor)
+vendor/
+
+# Dependency directories (common tools)
+bin/
+dist/
+build/
+coverage/
+tmp/
+temp/
+
+# IDE/editor
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test coverage
+coverage.out
+cover.out
+
+# Local env/config
+.env
+.env.*
+*.local.yaml
+*.local.yml
+*.local.json
+
+# otim
+otim-protocol/
+otim-offchain/
