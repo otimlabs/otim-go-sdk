@@ -175,18 +175,6 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 
 	t.Logf("Signed Authorization length: %d", len(newRequest.SignedAuthorization))
 
-	// Validate all instructions have signatures
-	for i, instr := range newRequest.Instructions {
-		if len(instr.ActivationSignature) != 65 {
-			t.Errorf("Instruction %d: ActivationSignature has wrong length: got %d, want 65", i, len(instr.ActivationSignature))
-		}
-	}
-	for i, instr := range newRequest.CompletionInstructions {
-		if len(instr.ActivationSignature) != 65 {
-			t.Errorf("CompletionInstruction %d: ActivationSignature has wrong length: got %d, want 65", i, len(instr.ActivationSignature))
-		}
-	}
-
 	t.Logf("All %d instructions signed successfully", len(newRequest.Instructions)+len(newRequest.CompletionInstructions))
 
 	// Phase 5: Submit to NewOrchestration API

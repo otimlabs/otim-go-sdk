@@ -35,29 +35,35 @@ import (
 type ActionType string
 
 const (
-	ActionTypeTransfer              ActionType = "Transfer"
-	ActionTypeTransferOnce          ActionType = "TransferOnce"
-	ActionTypeTransferERC20         ActionType = "TransferERC20"
-	ActionTypeTransferERC20Once     ActionType = "TransferERC20Once"
-	ActionTypeTransferCCTP          ActionType = "TransferCCTP"
-	ActionTypeSweep                 ActionType = "Sweep"
-	ActionTypeSweepERC20            ActionType = "SweepERC20"
-	ActionTypeSweepCCTP             ActionType = "SweepCCTP"
-	ActionTypeSweepUniswapV3        ActionType = "SweepUniswapV3"
-	ActionTypeRefuel                ActionType = "Refuel"
-	ActionTypeRefuelERC20           ActionType = "RefuelERC20"
-	ActionTypeUniswapV3ExactInput   ActionType = "UniswapV3ExactInput"
-	ActionTypeDepositERC4626        ActionType = "DepositERC4626"
-	ActionTypeWithdrawERC4626       ActionType = "WithdrawERC4626"
-	ActionTypeSweepDepositERC4626   ActionType = "SweepDepositERC4626"
-	ActionTypeSweepWithdrawERC4626  ActionType = "SweepWithdrawERC4626"
-	ActionTypeCallOnce              ActionType = "CallOnce"
-	ActionTypeDeactivateInstruction ActionType = "DeactivateInstruction"
+	ActionTypeTransfer              ActionType = "transfer"
+	ActionTypeTransferOnce          ActionType = "transferOnce"
+	ActionTypeTransferERC20         ActionType = "transferERC20"
+	ActionTypeTransferERC20Once     ActionType = "transferERC20Once"
+	ActionTypeTransferCCTP          ActionType = "transferCCTP"
+	ActionTypeSweep                 ActionType = "sweep"
+	ActionTypeSweepERC20            ActionType = "sweepERC20"
+	ActionTypeSweepCCTP             ActionType = "sweepCCTP"
+	ActionTypeSweepUniswapV3        ActionType = "sweepUniswapV3"
+	ActionTypeRefuel                ActionType = "refuel"
+	ActionTypeRefuelERC20           ActionType = "refuelERC20"
+	ActionTypeUniswapV3ExactInput   ActionType = "uniswapV3ExactInput"
+	ActionTypeDepositERC4626        ActionType = "depositERC4626"
+	ActionTypeWithdrawERC4626       ActionType = "withdrawERC4626"
+	ActionTypeSweepDepositERC4626   ActionType = "sweepDepositERC4626"
+	ActionTypeSweepWithdrawERC4626  ActionType = "sweepWithdrawERC4626"
+	ActionTypeCallOnce              ActionType = "callOnce"
+	ActionTypeDeactivateInstruction ActionType = "deactivateInstruction"
 )
 
 // ActionTypeFromName converts an action name string to ActionType
 func ActionTypeFromName(name string) (ActionType, error) {
-	actionType := ActionType(name)
+	// Normalize the name to handle both PascalCase and camelCase inputs
+	// e.g., "Transfer" -> "transfer", "TransferOnce" -> "transferOnce"
+	normalizedName := name
+	if len(name) > 0 {
+		normalizedName = strings.ToLower(name[:1]) + name[1:]
+	}
+	actionType := ActionType(normalizedName)
 
 	// Validate that it's a known action type
 	switch actionType {
