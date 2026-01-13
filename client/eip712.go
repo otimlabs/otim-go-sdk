@@ -57,7 +57,13 @@ const (
 
 // ActionTypeFromName converts an action name string to ActionType
 func ActionTypeFromName(name string) (ActionType, error) {
-	actionType := ActionType(name)
+	// Normalize the name to handle both PascalCase and camelCase inputs
+	// e.g., "Transfer" -> "transfer", "TransferOnce" -> "transferOnce"
+	normalizedName := name
+	if len(name) > 0 {
+		normalizedName = strings.ToLower(name[:1]) + name[1:]
+	}
+	actionType := ActionType(normalizedName)
 
 	// Validate that it's a known action type
 	switch actionType {
