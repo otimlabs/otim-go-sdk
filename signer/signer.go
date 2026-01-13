@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/holiman/uint256"
 	"github.com/tkhq/go-sdk/pkg/api/models"
 )
@@ -15,6 +16,12 @@ type Signer interface {
 	Sign(data []byte) ([]byte, error)
 	// TKSign signs data using the Turnkey API, signer's private key acts as an api key.
 	TKSign(data []byte, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error)
+	// TKSignEIP7702 signs EIP-7702 authorization using the Turnkey API
+	TKSignEIP7702(authorization types.SetCodeAuthorization, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error)
+	// TKSignEIP712 signs EIP-712 typed data using the Turnkey API
+	TKSignEIP712(typedData map[string]interface{}, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error)
+	// TKSignEIP712Batch signs multiple EIP-712 typed data payloads using the Turnkey batch API
+	TKSignEIP712Batch(typedDataList []map[string]interface{}, subOrganizationId string, walletAccountAddress common.Address) ([]*Signature, error)
 }
 
 // Signature is a struct representing an Ethereum ECDSA signature.
@@ -38,12 +45,21 @@ func SigFromTurnkeyResult(res *models.SignRawPayloadResult) (*Signature, error) 
 		return nil, fmt.Errorf("parse V: %w", err)
 	}
 
-	// R and S are hex strings (0x-prefixed); convert to uint256.Int
-	r, err := uint256.FromHex(*res.R)
+	// R and S are hex strings; add 0x prefix if missing for uint256.FromHex
+	rHex := *res.R
+	if len(rHex) < 2 || rHex[:2] != "0x" {
+		rHex = "0x" + rHex
+	}
+	sHex := *res.S
+	if len(sHex) < 2 || sHex[:2] != "0x" {
+		sHex = "0x" + sHex
+	}
+
+	r, err := uint256.FromHex(rHex)
 	if err != nil {
 		return nil, fmt.Errorf("parse R: %w", err)
 	}
-	s, err := uint256.FromHex(*res.S)
+	s, err := uint256.FromHex(sHex)
 	if err != nil {
 		return nil, fmt.Errorf("parse S: %w", err)
 	}
@@ -53,4 +69,22 @@ func SigFromTurnkeyResult(res *models.SignRawPayloadResult) (*Signature, error) 
 		R: *r,
 		S: *s,
 	}, nil
+}
+
+// SigsFromTurnkeyBatchResult converts a Turnkey SignRawPayloadsResult to a slice of Signatures
+func SigsFromTurnkeyBatchResult(results []*models.SignRawPayloadResult) ([]*Signature, error) {
+	if results == nil {
+		return nil, fmt.Errorf("nil turnkey batch results")
+	}
+
+	signatures := make([]*Signature, len(results))
+	for i, res := range results {
+		sig, err := SigFromTurnkeyResult(res)
+		if err != nil {
+			return nil, fmt.Errorf("parse signature %d: %w", i, err)
+		}
+		signatures[i] = sig
+	}
+
+	return signatures, nil
 }

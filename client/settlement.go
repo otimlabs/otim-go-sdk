@@ -3,11 +3,13 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/holiman/uint256"
 )
 
@@ -33,7 +35,8 @@ type BuildInstructionResponse struct {
 	Salt          U256           `json:"salt"`
 	MaxExecutions U256           `json:"maxExecutions"`
 	Action        common.Address `json:"action"`
-	Arguments     []byte         `json:"arguments"`
+	Arguments     hexutil.Bytes  `json:"arguments"`
+	ActionName    string         `json:"actionName"`
 }
 
 type BuildOrchestrationResponse struct {
@@ -45,14 +48,20 @@ type BuildOrchestrationResponse struct {
 	Instructions           []BuildInstructionResponse `json:"instructions"`
 }
 
+type Signature struct {
+	V uint8  `json:"v"`
+	R string `json:"r"`
+	S string `json:"s"`
+}
+
 type NewInstructionRequest struct {
 	Address             common.Address `json:"address"`
 	ChainID             ChainID        `json:"chainId"`
 	Salt                U256           `json:"salt"`
 	MaxExecutions       U256           `json:"maxExecutions"`
 	Action              common.Address `json:"action"`
-	Arguments           []byte         `json:"arguments"`
-	ActivationSignature []byte         `json:"activationSignature"`
+	Arguments           hexutil.Bytes  `json:"arguments"`
+	ActivationSignature Signature      `json:"activationSignature"`
 	Nickname            *string        `json:"nickname,omitempty"`
 }
 
@@ -77,41 +86,141 @@ func (c *Client) BuildSettlementOrchestration(
 func (c *Client) NewOrchestration(
 	ctx context.Context,
 	req *NewOrchestrationRequest,
-) (*BuildOrchestrationResponse, error) {
-
-	var result BuildOrchestrationResponse
-	if err := c.postJSON(ctx, "/orchestration/new", req, &result); err != nil {
-		return nil, err
-	}
-	return &result, nil
+) error {
+	return c.postJSON(ctx, "/orchestration/new", req, nil)
 }
 
-// TODO: Likely needs to be moved out from a client to a workflow helper.
+// NewOrchestrationFromBuild creates a NewOrchestrationRequest from a BuildOrchestrationResponse
+// by signing the authorization and all instructions with EIP-712 signatures via Turnkey.
+// Action types are determined from the ActionName field in BuildInstructionResponse.
+// If ActionName is not provided, the function will attempt to detect action types from the
+// instruction arguments as a fallback.
 func (c *Client) NewOrchestrationFromBuild(
 	ctx context.Context,
 	buildOrchestrationResponse *BuildOrchestrationResponse,
 ) (*NewOrchestrationRequest, error) {
-	authorization := types.SetCodeAuthorization{
-		ChainID: *uint256.NewInt(0),
-		Nonce:   0,
-		Address: c.otimDelegateAddr,
-		// Those should just be set to 0
-		V: 0,
-		R: *uint256.NewInt(0),
-		S: *uint256.NewInt(0),
-	}
-
-	hash := authorization.SigHash()
-
-	authorizationSignature, err := c.TKSign(hash[:], buildOrchestrationResponse.SubOrgID, buildOrchestrationResponse.EphemeralWalletAddress)
+	// Step 1: Sign the EIP-7702 authorization
+	signedAuthorization, err := c.signAuthorization(
+		buildOrchestrationResponse.SubOrgID,
+		buildOrchestrationResponse.EphemeralWalletAddress,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: Figure out how to encode this so it matches alloy format.
-	authorization.V = authorizationSignature.V
-	authorization.R = authorizationSignature.R
-	authorization.S = authorizationSignature.S
+	// Step 2: Sign all instructions with EIP-712
+	instructions, err := c.signInstructions(
+		buildOrchestrationResponse.Instructions,
+		buildOrchestrationResponse.SubOrgID,
+		buildOrchestrationResponse.EphemeralWalletAddress,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("sign instructions: %w", err)
+	}
 
-	return nil, nil
+	// Step 3: Sign all completion instructions with EIP-712
+	completionInstructions, err := c.signInstructions(
+		buildOrchestrationResponse.CompletionInstructions,
+		buildOrchestrationResponse.SubOrgID,
+		buildOrchestrationResponse.EphemeralWalletAddress,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("sign completion instructions: %w", err)
+	}
+
+	result := &NewOrchestrationRequest{
+		RequestID:              buildOrchestrationResponse.RequestID,
+		SignedAuthorization:    hexutil.Encode(signedAuthorization),
+		CompletionInstructions: completionInstructions,
+		Instructions:           instructions,
+	}
+
+	return result, nil
+}
+
+// signAuthorization creates and signs an EIP-7702 authorization, returning the RLP-encoded result
+func (c *Client) signAuthorization(
+	subOrgID string,
+	walletAddress common.Address,
+) ([]byte, error) {
+	// Create the EIP-7702 authorization
+	authorization := types.SetCodeAuthorization{
+		ChainID: *uint256.NewInt(0),
+		Nonce:   0,
+		Address: c.otimDelegateAddr,
+		V:       0,
+		R:       *uint256.NewInt(0),
+		S:       *uint256.NewInt(0),
+	}
+
+	// Sign the authorization via Turnkey
+	authSig, err := c.TKSignEIP7702(authorization, subOrgID, walletAddress)
+	if err != nil {
+		return nil, fmt.Errorf("sign authorization: %w", err)
+	}
+
+	// Apply the signature to the authorization
+	authorization.V = authSig.V
+	authorization.R = authSig.R
+	authorization.S = authSig.S
+
+	// RLP encode the signed authorization
+	signedAuthorization, err := rlp.EncodeToBytes(authorization)
+	if err != nil {
+		return nil, fmt.Errorf("encode authorization: %w", err)
+	}
+
+	return signedAuthorization, nil
+}
+
+// signInstructions signs a list of instructions with EIP-712 signatures.
+// Action types are determined in the following priority order:
+// 1. ActionName field from BuildInstructionResponse (preferred)
+// 2. Automatic detection from instruction arguments (fallback)
+func (c *Client) signInstructions(
+	buildInstructions []BuildInstructionResponse,
+	subOrgID string,
+	walletAddress common.Address,
+) ([]NewInstructionRequest, error) {
+	if len(buildInstructions) == 0 {
+		return []NewInstructionRequest{}, nil
+	}
+
+	// Build all TypedData payloads
+	typedDataList := make([]map[string]interface{}, len(buildInstructions))
+	for i, instr := range buildInstructions {
+		typedData, err := BuildTypedDataForAction(instr, c.otimDelegateAddr)
+		if err != nil {
+			return nil, fmt.Errorf("build typed data for instruction %d: %w", i, err)
+		}
+		typedDataList[i] = typedData
+	}
+
+	// Sign all instructions in a single batch call to Turnkey
+	signatures, err := c.TKSignEIP712Batch(typedDataList, subOrgID, walletAddress)
+	if err != nil {
+		return nil, fmt.Errorf("batch sign instructions: %w", err)
+	}
+
+	// Pack signatures and build instruction requests
+	instructions := make([]NewInstructionRequest, len(buildInstructions))
+	for i, instr := range buildInstructions {
+		sig := signatures[i]
+
+		instructions[i] = NewInstructionRequest{
+			Address:       instr.Address,
+			ChainID:       instr.ChainID,
+			Salt:          instr.Salt,
+			MaxExecutions: instr.MaxExecutions,
+			Action:        instr.Action,
+			Arguments:     instr.Arguments,
+			ActivationSignature: Signature{
+				V: sig.V,
+				R: sig.R.Hex(),
+				S: sig.S.Hex(),
+			},
+		}
+	}
+
+	return instructions, nil
 }
