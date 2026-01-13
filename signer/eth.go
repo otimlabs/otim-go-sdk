@@ -133,7 +133,7 @@ func (s *EthSigner) TKSignEIP712(
 
 	payload := string(typedDataJSON)
 	walletAccountAddressString := walletAccountAddress.String()
-	
+
 	params := signing.NewSignRawPayloadParams().WithBody(&models.SignRawPayloadRequest{
 		OrganizationID: &subOrganizationId,
 		TimestampMs:    util.RequestTimestamp(),
@@ -162,14 +162,14 @@ func (s *EthSigner) TKSignEIP712Batch(
 	// Build array of JSON payloads to sign
 	payloads := make([]string, len(typedDataList))
 	walletAccountAddressString := walletAccountAddress.String()
-	
+
 	for i, typedData := range typedDataList {
 		// Serialize each EIP-712 typed data to JSON
 		typedDataJSON, err := json.Marshal(typedData)
 		if err != nil {
 			return nil, fmt.Errorf("marshal typed data %d: %w", i, err)
 		}
-		
+
 		payloads[i] = string(typedDataJSON)
 	}
 
@@ -197,4 +197,3 @@ func (s *EthSigner) TKSignEIP712Batch(
 
 	return SigsFromTurnkeyBatchResult(res.Payload.Activity.Result.SignRawPayloadsResult.Signatures)
 }
-

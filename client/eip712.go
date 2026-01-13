@@ -35,24 +35,24 @@ import (
 type ActionType string
 
 const (
-	ActionTypeTransfer                  ActionType = "Transfer"
-	ActionTypeTransferOnce              ActionType = "TransferOnce"
-	ActionTypeTransferERC20             ActionType = "TransferERC20"
-	ActionTypeTransferERC20Once         ActionType = "TransferERC20Once"
-	ActionTypeTransferCCTP              ActionType = "TransferCCTP"
-	ActionTypeSweep                     ActionType = "Sweep"
-	ActionTypeSweepERC20                ActionType = "SweepERC20"
-	ActionTypeSweepCCTP                 ActionType = "SweepCCTP"
-	ActionTypeSweepUniswapV3            ActionType = "SweepUniswapV3"
-	ActionTypeRefuel                    ActionType = "Refuel"
-	ActionTypeRefuelERC20               ActionType = "RefuelERC20"
-	ActionTypeUniswapV3ExactInput       ActionType = "UniswapV3ExactInput"
-	ActionTypeDepositERC4626            ActionType = "DepositERC4626"
-	ActionTypeWithdrawERC4626           ActionType = "WithdrawERC4626"
-	ActionTypeSweepDepositERC4626       ActionType = "SweepDepositERC4626"
-	ActionTypeSweepWithdrawERC4626      ActionType = "SweepWithdrawERC4626"
-	ActionTypeCallOnce                  ActionType = "CallOnce"
-	ActionTypeDeactivateInstruction     ActionType = "DeactivateInstruction"
+	ActionTypeTransfer              ActionType = "Transfer"
+	ActionTypeTransferOnce          ActionType = "TransferOnce"
+	ActionTypeTransferERC20         ActionType = "TransferERC20"
+	ActionTypeTransferERC20Once     ActionType = "TransferERC20Once"
+	ActionTypeTransferCCTP          ActionType = "TransferCCTP"
+	ActionTypeSweep                 ActionType = "Sweep"
+	ActionTypeSweepERC20            ActionType = "SweepERC20"
+	ActionTypeSweepCCTP             ActionType = "SweepCCTP"
+	ActionTypeSweepUniswapV3        ActionType = "SweepUniswapV3"
+	ActionTypeRefuel                ActionType = "Refuel"
+	ActionTypeRefuelERC20           ActionType = "RefuelERC20"
+	ActionTypeUniswapV3ExactInput   ActionType = "UniswapV3ExactInput"
+	ActionTypeDepositERC4626        ActionType = "DepositERC4626"
+	ActionTypeWithdrawERC4626       ActionType = "WithdrawERC4626"
+	ActionTypeSweepDepositERC4626   ActionType = "SweepDepositERC4626"
+	ActionTypeSweepWithdrawERC4626  ActionType = "SweepWithdrawERC4626"
+	ActionTypeCallOnce              ActionType = "CallOnce"
+	ActionTypeDeactivateInstruction ActionType = "DeactivateInstruction"
 )
 
 // ActionTypeFromName converts an action name string to ActionType
@@ -766,12 +766,12 @@ func buildTransferCCTPInstructionTypedData(
 			"maxExecutions": instruction.MaxExecutions.ToInt().String(),
 			"action":        instruction.Action.Hex(),
 			"transferCCTP": map[string]interface{}{
-				"token":                     transferCCTP.Token.Hex(),
-				"amount":                    transferCCTP.Amount.String(),
-				"destinationDomain":         fmt.Sprintf("%d", transferCCTP.DestinationDomain),
-				"destinationMintRecipient":  hexutil.Encode(transferCCTP.DestinationMintRecipient[:]),
-				"schedule":                  scheduleToMap(transferCCTP.Schedule),
-				"fee":                       feeToMap(transferCCTP.Fee),
+				"token":                    transferCCTP.Token.Hex(),
+				"amount":                   transferCCTP.Amount.String(),
+				"destinationDomain":        fmt.Sprintf("%d", transferCCTP.DestinationDomain),
+				"destinationMintRecipient": hexutil.Encode(transferCCTP.DestinationMintRecipient[:]),
+				"schedule":                 scheduleToMap(transferCCTP.Schedule),
+				"fee":                      feeToMap(transferCCTP.Fee),
 			},
 		},
 	}, nil
@@ -849,16 +849,16 @@ func buildUniswapV3ExactInputInstructionTypedData(
 			"maxExecutions": instruction.MaxExecutions.ToInt().String(),
 			"action":        instruction.Action.Hex(),
 			"uniswapV3ExactInput": map[string]interface{}{
-				"recipient":             uniswapV3.Recipient.Hex(),
-				"tokenIn":               uniswapV3.TokenIn.Hex(),
-				"tokenOut":              uniswapV3.TokenOut.Hex(),
-				"feeTier":               uniswapV3.FeeTier.String(),
-				"amountIn":              uniswapV3.AmountIn.String(),
-				"floorAmountOut":        uniswapV3.FloorAmountOut.String(),
-				"meanPriceLookBack":     fmt.Sprintf("%d", uniswapV3.MeanPriceLookBack),
-				"maxPriceDeviationBPS":  fmt.Sprintf("%d", uniswapV3.MaxPriceDeviationBPS),
-				"schedule":              scheduleToMap(uniswapV3.Schedule),
-				"fee":                   feeToMap(uniswapV3.Fee),
+				"recipient":            uniswapV3.Recipient.Hex(),
+				"tokenIn":              uniswapV3.TokenIn.Hex(),
+				"tokenOut":             uniswapV3.TokenOut.Hex(),
+				"feeTier":              uniswapV3.FeeTier.String(),
+				"amountIn":             uniswapV3.AmountIn.String(),
+				"floorAmountOut":       uniswapV3.FloorAmountOut.String(),
+				"meanPriceLookBack":    fmt.Sprintf("%d", uniswapV3.MeanPriceLookBack),
+				"maxPriceDeviationBPS": fmt.Sprintf("%d", uniswapV3.MaxPriceDeviationBPS),
+				"schedule":             scheduleToMap(uniswapV3.Schedule),
+				"fee":                  feeToMap(uniswapV3.Fee),
 			},
 		},
 	}, nil
@@ -896,16 +896,16 @@ func buildSweepUniswapV3InstructionTypedData(
 			"maxExecutions": instruction.MaxExecutions.ToInt().String(),
 			"action":        instruction.Action.Hex(),
 			"sweepUniswapV3": map[string]interface{}{
-				"recipient":             sweepUniswapV3.Recipient.Hex(),
-				"tokenIn":               sweepUniswapV3.TokenIn.Hex(),
-				"tokenOut":              sweepUniswapV3.TokenOut.Hex(),
-				"feeTier":               sweepUniswapV3.FeeTier.String(),
-				"threshold":             sweepUniswapV3.Threshold.String(),
-				"endBalance":            sweepUniswapV3.EndBalance.String(),
-				"floorAmountOut":        sweepUniswapV3.FloorAmountOut.String(),
-				"meanPriceLookBack":     fmt.Sprintf("%d", sweepUniswapV3.MeanPriceLookBack),
-				"maxPriceDeviationBPS":  fmt.Sprintf("%d", sweepUniswapV3.MaxPriceDeviationBPS),
-				"fee":                   feeToMap(sweepUniswapV3.Fee),
+				"recipient":            sweepUniswapV3.Recipient.Hex(),
+				"tokenIn":              sweepUniswapV3.TokenIn.Hex(),
+				"tokenOut":             sweepUniswapV3.TokenOut.Hex(),
+				"feeTier":              sweepUniswapV3.FeeTier.String(),
+				"threshold":            sweepUniswapV3.Threshold.String(),
+				"endBalance":           sweepUniswapV3.EndBalance.String(),
+				"floorAmountOut":       sweepUniswapV3.FloorAmountOut.String(),
+				"meanPriceLookBack":    fmt.Sprintf("%d", sweepUniswapV3.MeanPriceLookBack),
+				"maxPriceDeviationBPS": fmt.Sprintf("%d", sweepUniswapV3.MaxPriceDeviationBPS),
+				"fee":                  feeToMap(sweepUniswapV3.Fee),
 			},
 		},
 	}, nil
@@ -1204,20 +1204,20 @@ func DecodeArguments(actionType ActionType, arguments []byte) (interface{}, erro
 	// This method has the complete struct type definition with all components
 	// Note: When Solidity functions are overloaded, go-ethereum names them hash, hash0, hash1, etc.
 	var structArgument *abi.Argument
-	
+
 	// Look through all methods starting with "hash" to find the action struct
 	// Filter out nested structs like Schedule and Fee by checking the parameter name
 	for _, method := range parsedABI.Methods {
 		if strings.HasPrefix(method.Name, "hash") {
 			arg := &method.Inputs[0]
-			
+
 			// Skip nested structs - we want the main action struct
 			// Nested structs typically have names like "schedule", "fee", etc.
 			paramName := strings.ToLower(arg.Name)
 			if paramName == "schedule" || paramName == "fee" {
 				continue
 			}
-			
+
 			structArgument = arg
 			break
 		}
@@ -1229,7 +1229,7 @@ func DecodeArguments(actionType ActionType, arguments []byte) (interface{}, erro
 
 	// Create ABI arguments wrapper for unpacking
 	argsDef := abi.Arguments{*structArgument}
-	
+
 	// Unpack the arguments into the target struct
 	values, err := argsDef.Unpack(arguments)
 	if err != nil {

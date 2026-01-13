@@ -85,8 +85,8 @@ func createTestBuildRequest() *BuildSettlementOrchestrationRequest {
 
 	return &BuildSettlementOrchestrationRequest{
 		AcceptedTokens:   acceptedTokens,
-		SettlementChain:  1,               // Ethereum mainnet
-		SettlementToken:  usdcAddress,     // USDC
+		SettlementChain:  1,           // Ethereum mainnet
+		SettlementToken:  usdcAddress, // USDC
 		SettlementAmount: hexutil.Big(*settlementAmount),
 		RecipientAddress: recipientAddress,
 		Metadata:         json.RawMessage(`{"test": "integration-test"}`),

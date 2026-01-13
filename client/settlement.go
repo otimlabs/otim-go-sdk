@@ -84,7 +84,6 @@ func (c *Client) NewOrchestration(
 	return c.postJSON(ctx, "/orchestration/new", req, nil)
 }
 
-
 // NewOrchestrationFromBuild creates a NewOrchestrationRequest from a BuildOrchestrationResponse
 // by signing the authorization and all instructions with EIP-712 signatures via Turnkey.
 // Action types are determined from the ActionName field in BuildInstructionResponse.
@@ -199,7 +198,7 @@ func (c *Client) signInstructions(
 	instructions := make([]NewInstructionRequest, len(buildInstructions))
 	for i, instr := range buildInstructions {
 		sig := signatures[i]
-		
+
 		// Pack signature into 65-byte format: R (32 bytes) || S (32 bytes) || V (1 byte)
 		sigBytes := make([]byte, 65)
 		rBytes := sig.R.Bytes32()
