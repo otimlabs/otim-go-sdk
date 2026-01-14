@@ -1,4 +1,4 @@
-module otim-go-sdk
+module github.com/otimlabs/otim-go-sdk
 
 go 1.25
 

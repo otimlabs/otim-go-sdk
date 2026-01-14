@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"otim-go-sdk/signer"
+	"github.com/otimlabs/otim-go-sdk/signer"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
