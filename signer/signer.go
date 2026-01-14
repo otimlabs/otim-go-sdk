@@ -12,7 +12,7 @@ import (
 	"github.com/tkhq/go-sdk/pkg/api/models"
 )
 
-// withContext returns a ClientOption that sets the context on the ClientOperation.
+// withContext allows for passing the current context to Turnkey SDK client.
 func withContext(ctx context.Context) func(*runtime.ClientOperation) {
 	return func(op *runtime.ClientOperation) {
 		op.Context = ctx

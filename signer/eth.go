@@ -17,6 +17,8 @@ import (
 	"github.com/tkhq/go-sdk/pkg/util"
 )
 
+// EthSigner implements the Signer interface using an ECDSA private key.
+// It supports both local signing and remote signing via the Turnkey API.
 type EthSigner struct {
 	privateKey *ecdsa.PrivateKey
 	tkClient   *sdk.Client
@@ -29,7 +31,14 @@ type EIP7702AuthorizationPayload struct {
 	Nonce   string `json:"nonce"`
 }
 
-func NewEthSigner(privateKeyHex string) (*EthSigner, error) {
+// NewEthSigner creates a new EthSigner from a hex-encoded private key.
+// The private key is used as an API key for authenticating with the Turnkey API.
+// turnkeyOptions can be provided to customize the underlying Turnkey SDK client.
+// These options enable observability features such as custom HTTP clients with tracing,
+// request/response logging, and metrics collection. For example:
+//   - sdk.WithHTTPClient(client) - use a custom http.Client with OpenTelemetry instrumentation
+//   - sdk.WithBaseURL(url) - override the default Turnkey API endpoint
+func NewEthSigner(privateKeyHex string, turnkeyOptions ...sdk.OptionFunc) (*EthSigner, error) {
 	privateKey, err := crypto.HexToECDSA(privateKeyHex)
 	if err != nil {
 		return nil, err
@@ -39,7 +48,9 @@ func NewEthSigner(privateKeyHex string) (*EthSigner, error) {
 		return nil, err
 	}
 
-	tkClient, err := sdk.New(sdk.WithAPIKey(tkApiKey))
+	turnkeyOptions = append(turnkeyOptions, sdk.WithAPIKey(tkApiKey))
+
+	tkClient, err := sdk.New(turnkeyOptions...)
 
 	return &EthSigner{
 		privateKey: privateKey,
