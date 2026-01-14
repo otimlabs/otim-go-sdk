@@ -4,6 +4,7 @@ go 1.25
 
 require (
 	github.com/ethereum/go-ethereum v1.16.7
+	github.com/holiman/uint256 v1.3.2
 	github.com/tkhq/go-sdk v0.14.0
 )
 
@@ -37,7 +38,6 @@ require (
 	github.com/go-openapi/validate v0.22.1 // indirect
 	github.com/google/uuid v1.3.1 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
-	github.com/holiman/uint256 v1.3.2 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
