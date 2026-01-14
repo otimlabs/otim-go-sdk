@@ -1,6 +1,7 @@
 package signer
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
@@ -54,7 +55,7 @@ func (s *EthSigner) Sign(data []byte) ([]byte, error) {
 	return crypto.Sign(data, s.privateKey)
 }
 
-func (s *EthSigner) TKSign(data []byte, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error) {
+func (s *EthSigner) TKSign(ctx context.Context, data []byte, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error) {
 	payload := string(data)
 	walletAccountAddressString := walletAccountAddress.String()
 	params := signing.NewSignRawPayloadParams().WithBody(&models.SignRawPayloadRequest{
@@ -69,7 +70,7 @@ func (s *EthSigner) TKSign(data []byte, subOrganizationId string, walletAccountA
 		Type: (*string)(models.ActivityTypeSignRawPayloadV2.Pointer()),
 	})
 
-	res, err := s.tkClient.V0().Signing.SignRawPayload(params, s.tkClient.Authenticator)
+	res, err := s.tkClient.V0().Signing.SignRawPayload(params, s.tkClient.Authenticator, withContext(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -78,6 +79,7 @@ func (s *EthSigner) TKSign(data []byte, subOrganizationId string, walletAccountA
 }
 
 func (s *EthSigner) TKSignEIP7702(
+	ctx context.Context,
 	authorization types.SetCodeAuthorization,
 	subOrganizationId string,
 	walletAccountAddress common.Address,
@@ -111,7 +113,7 @@ func (s *EthSigner) TKSignEIP7702(
 		Type: (*string)(models.ActivityTypeSignRawPayloadV2.Pointer()),
 	})
 
-	res, err := s.tkClient.V0().Signing.SignRawPayload(params, s.tkClient.Authenticator)
+	res, err := s.tkClient.V0().Signing.SignRawPayload(params, s.tkClient.Authenticator, withContext(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("turnkey sign EIP-7702: %w", err)
 	}
@@ -120,6 +122,7 @@ func (s *EthSigner) TKSignEIP7702(
 }
 
 func (s *EthSigner) TKSignEIP712(
+	ctx context.Context,
 	typedData map[string]interface{},
 	subOrganizationId string,
 	walletAccountAddress common.Address,
@@ -146,7 +149,7 @@ func (s *EthSigner) TKSignEIP712(
 		Type: (*string)(models.ActivityTypeSignRawPayloadV2.Pointer()),
 	})
 
-	res, err := s.tkClient.V0().Signing.SignRawPayload(params, s.tkClient.Authenticator)
+	res, err := s.tkClient.V0().Signing.SignRawPayload(params, s.tkClient.Authenticator, withContext(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("turnkey sign EIP-712: %w", err)
 	}
@@ -155,6 +158,7 @@ func (s *EthSigner) TKSignEIP712(
 }
 
 func (s *EthSigner) TKSignEIP712Batch(
+	ctx context.Context,
 	typedDataList []map[string]interface{},
 	subOrganizationId string,
 	walletAccountAddress common.Address,
@@ -185,7 +189,7 @@ func (s *EthSigner) TKSignEIP712Batch(
 		Type: (*string)(models.ActivityTypeSignRawPayloads.Pointer()),
 	})
 
-	res, err := s.tkClient.V0().Signing.SignRawPayloads(params, s.tkClient.Authenticator)
+	res, err := s.tkClient.V0().Signing.SignRawPayloads(params, s.tkClient.Authenticator, withContext(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("turnkey batch sign EIP-712: %w", err)
 	}

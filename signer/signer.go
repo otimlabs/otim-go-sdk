@@ -1,27 +1,36 @@
 package signer
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/go-openapi/runtime"
 	"github.com/holiman/uint256"
 	"github.com/tkhq/go-sdk/pkg/api/models"
 )
+
+// withContext returns a ClientOption that sets the context on the ClientOperation.
+func withContext(ctx context.Context) func(*runtime.ClientOperation) {
+	return func(op *runtime.ClientOperation) {
+		op.Context = ctx
+	}
+}
 
 // Signer is an interface for signing data
 type Signer interface {
 	// Sign signs data using the signer's private key
 	Sign(data []byte) ([]byte, error)
 	// TKSign signs data using the Turnkey API, signer's private key acts as an api key.
-	TKSign(data []byte, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error)
+	TKSign(ctx context.Context, data []byte, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error)
 	// TKSignEIP7702 signs EIP-7702 authorization using the Turnkey API
-	TKSignEIP7702(authorization types.SetCodeAuthorization, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error)
+	TKSignEIP7702(ctx context.Context, authorization types.SetCodeAuthorization, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error)
 	// TKSignEIP712 signs EIP-712 typed data using the Turnkey API
-	TKSignEIP712(typedData map[string]interface{}, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error)
+	TKSignEIP712(ctx context.Context, typedData map[string]interface{}, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error)
 	// TKSignEIP712Batch signs multiple EIP-712 typed data payloads using the Turnkey batch API
-	TKSignEIP712Batch(typedDataList []map[string]interface{}, subOrganizationId string, walletAccountAddress common.Address) ([]*Signature, error)
+	TKSignEIP712Batch(ctx context.Context, typedDataList []map[string]interface{}, subOrganizationId string, walletAccountAddress common.Address) ([]*Signature, error)
 }
 
 // Signature is a struct representing an Ethereum ECDSA signature.
