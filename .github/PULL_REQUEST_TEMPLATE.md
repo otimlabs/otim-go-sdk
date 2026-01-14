@@ -1,55 +1,25 @@
-<!--
-Thank you for your Pull Request! Please provide the details below to help with code reviews.
--->
+## Summary
 
-## Motivation
+<!-- Briefly describe what this PR does and why. -->
 
-<!--
-Add your Linear issue ID using the format "ENG-123". This can automatically update
-the issue status using Linear's magic words. Examples of magic words:
-- Closing: closes, fixes, resolves, completes
-- Non-closing: ref, references, related to, contributes to
+## Changes
 
-For PRs without a Linear issue, briefly explain why you're making this change.
-Keep it concise - if the explanation becomes lengthy, consider creating a Linear ticket.
--->
+<!-- List the key changes made in this PR. -->
 
-[Linear Issue ID (if applicable)](https://linear.app/otim/team/ENG/all)
+-
 
-## Solution
+## Test Plan
 
-<!--
-Summarize the solution and provide any necessary context needed to understand the code change.
--->
+<!-- Describe how you tested these changes. -->
 
-`...`
+- [ ] Unit tests added/updated
+- [ ] Integration tests pass
+- [ ] Manual testing performed
 
-## Reviewer Checklist
+## Checklist
 
-<!--
-## Type of change
-
-You can add a semantic prefix to your PR title (e.g., "fix: resolve payment issue")
-to automatically apply appropriate labels. Alternatively, labels can be manually added in the GitHub interface.
-
-Supported prefixes:
-- feat: (new feature)
-- fix: (bug fix)
-- chore: (maintenance tasks)
-- test: (test additions/changes)
-- docs: (documentation changes)
-- style: (formatting changes)
-- breaking-change: (breaks existing functionality)
-- hotfix: (emergency production fixes)
-- revert: (reverting previous changes)
-
-## Automated Checklist
-
-Code quality checks are increasingly handled by pre-commit hooks and CI.
-Ensure you have pre-commit installed. Many of these items will be automatically
-verified, but please review the below checklist for any which may require human judgment.
--->
-
-- [ ] tests have been added to validate the change
-- [ ] code has been commented, particularly in hard-to-understand areas
-- [ ] corresponding documentation updates have been made
+- [ ] Code follows the project's style guidelines
+- [ ] Self-review of the code has been performed
+- [ ] Code has been commented where necessary
+- [ ] Documentation has been updated (if applicable)
+- [ ] No new warnings are introduced
