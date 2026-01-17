@@ -101,6 +101,7 @@ func (c *Client) NewOrchestrationFromBuild(
 ) (*NewOrchestrationRequest, error) {
 	// Step 1: Sign the EIP-7702 authorization
 	signedAuthorization, err := c.signAuthorization(
+		ctx,
 		buildOrchestrationResponse.SubOrgID,
 		buildOrchestrationResponse.EphemeralWalletAddress,
 	)
@@ -110,6 +111,7 @@ func (c *Client) NewOrchestrationFromBuild(
 
 	// Step 2: Sign all instructions with EIP-712
 	instructions, err := c.signInstructions(
+		ctx,
 		buildOrchestrationResponse.Instructions,
 		buildOrchestrationResponse.SubOrgID,
 		buildOrchestrationResponse.EphemeralWalletAddress,
@@ -120,6 +122,7 @@ func (c *Client) NewOrchestrationFromBuild(
 
 	// Step 3: Sign all completion instructions with EIP-712
 	completionInstructions, err := c.signInstructions(
+		ctx,
 		buildOrchestrationResponse.CompletionInstructions,
 		buildOrchestrationResponse.SubOrgID,
 		buildOrchestrationResponse.EphemeralWalletAddress,
@@ -140,6 +143,7 @@ func (c *Client) NewOrchestrationFromBuild(
 
 // signAuthorization creates and signs an EIP-7702 authorization, returning the RLP-encoded result
 func (c *Client) signAuthorization(
+	ctx context.Context,
 	subOrgID string,
 	walletAddress common.Address,
 ) ([]byte, error) {
@@ -154,7 +158,7 @@ func (c *Client) signAuthorization(
 	}
 
 	// Sign the authorization via Turnkey
-	authSig, err := c.TKSignEIP7702(authorization, subOrgID, walletAddress)
+	authSig, err := c.TKSignEIP7702(ctx, authorization, subOrgID, walletAddress)
 	if err != nil {
 		return nil, fmt.Errorf("sign authorization: %w", err)
 	}
@@ -178,6 +182,7 @@ func (c *Client) signAuthorization(
 // 1. ActionName field from BuildInstructionResponse (preferred)
 // 2. Automatic detection from instruction arguments (fallback)
 func (c *Client) signInstructions(
+	ctx context.Context,
 	buildInstructions []BuildInstructionResponse,
 	subOrgID string,
 	walletAddress common.Address,
@@ -197,7 +202,7 @@ func (c *Client) signInstructions(
 	}
 
 	// Sign all instructions in a single batch call to Turnkey
-	signatures, err := c.TKSignEIP712Batch(typedDataList, subOrgID, walletAddress)
+	signatures, err := c.TKSignEIP712Batch(ctx, typedDataList, subOrgID, walletAddress)
 	if err != nil {
 		return nil, fmt.Errorf("batch sign instructions: %w", err)
 	}

@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"otim-go-sdk/signer"
+	"github.com/otimlabs/otim-go-sdk/signer"
 
 	"github.com/ethereum/go-ethereum/common"
 )

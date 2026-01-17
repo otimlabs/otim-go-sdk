@@ -1,6 +1,7 @@
 package signer
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
@@ -16,6 +17,8 @@ import (
 	"github.com/tkhq/go-sdk/pkg/util"
 )
 
+// EthSigner implements the Signer interface using an ECDSA private key.
+// It supports both local signing and remote signing via the Turnkey API.
 type EthSigner struct {
 	privateKey *ecdsa.PrivateKey
 	tkClient   *sdk.Client
@@ -28,7 +31,14 @@ type EIP7702AuthorizationPayload struct {
 	Nonce   string `json:"nonce"`
 }
 
-func NewEthSigner(privateKeyHex string) (*EthSigner, error) {
+// NewEthSigner creates a new EthSigner from a hex-encoded private key.
+// The private key is used as an API key for authenticating with the Turnkey API.
+// turnkeyOptions can be provided to customize the underlying Turnkey SDK client.
+// These options enable observability features such as custom HTTP clients with tracing,
+// request/response logging, and metrics collection. For example:
+//   - sdk.WithHTTPClient(client) - use a custom http.Client with OpenTelemetry instrumentation
+//   - sdk.WithBaseURL(url) - override the default Turnkey API endpoint
+func NewEthSigner(privateKeyHex string, turnkeyOptions ...sdk.OptionFunc) (*EthSigner, error) {
 	privateKey, err := crypto.HexToECDSA(privateKeyHex)
 	if err != nil {
 		return nil, err
@@ -38,7 +48,9 @@ func NewEthSigner(privateKeyHex string) (*EthSigner, error) {
 		return nil, err
 	}
 
-	tkClient, err := sdk.New(sdk.WithAPIKey(tkApiKey))
+	turnkeyOptions = append(turnkeyOptions, sdk.WithAPIKey(tkApiKey))
+
+	tkClient, err := sdk.New(turnkeyOptions...)
 
 	return &EthSigner{
 		privateKey: privateKey,
@@ -54,7 +66,7 @@ func (s *EthSigner) Sign(data []byte) ([]byte, error) {
 	return crypto.Sign(data, s.privateKey)
 }
 
-func (s *EthSigner) TKSign(data []byte, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error) {
+func (s *EthSigner) TKSign(ctx context.Context, data []byte, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error) {
 	payload := string(data)
 	walletAccountAddressString := walletAccountAddress.String()
 	params := signing.NewSignRawPayloadParams().WithBody(&models.SignRawPayloadRequest{
@@ -69,7 +81,7 @@ func (s *EthSigner) TKSign(data []byte, subOrganizationId string, walletAccountA
 		Type: (*string)(models.ActivityTypeSignRawPayloadV2.Pointer()),
 	})
 
-	res, err := s.tkClient.V0().Signing.SignRawPayload(params, s.tkClient.Authenticator)
+	res, err := s.tkClient.V0().Signing.SignRawPayload(params, s.tkClient.Authenticator, withContext(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -78,6 +90,7 @@ func (s *EthSigner) TKSign(data []byte, subOrganizationId string, walletAccountA
 }
 
 func (s *EthSigner) TKSignEIP7702(
+	ctx context.Context,
 	authorization types.SetCodeAuthorization,
 	subOrganizationId string,
 	walletAccountAddress common.Address,
@@ -111,7 +124,7 @@ func (s *EthSigner) TKSignEIP7702(
 		Type: (*string)(models.ActivityTypeSignRawPayloadV2.Pointer()),
 	})
 
-	res, err := s.tkClient.V0().Signing.SignRawPayload(params, s.tkClient.Authenticator)
+	res, err := s.tkClient.V0().Signing.SignRawPayload(params, s.tkClient.Authenticator, withContext(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("turnkey sign EIP-7702: %w", err)
 	}
@@ -120,6 +133,7 @@ func (s *EthSigner) TKSignEIP7702(
 }
 
 func (s *EthSigner) TKSignEIP712(
+	ctx context.Context,
 	typedData map[string]interface{},
 	subOrganizationId string,
 	walletAccountAddress common.Address,
@@ -146,7 +160,7 @@ func (s *EthSigner) TKSignEIP712(
 		Type: (*string)(models.ActivityTypeSignRawPayloadV2.Pointer()),
 	})
 
-	res, err := s.tkClient.V0().Signing.SignRawPayload(params, s.tkClient.Authenticator)
+	res, err := s.tkClient.V0().Signing.SignRawPayload(params, s.tkClient.Authenticator, withContext(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("turnkey sign EIP-712: %w", err)
 	}
@@ -155,6 +169,7 @@ func (s *EthSigner) TKSignEIP712(
 }
 
 func (s *EthSigner) TKSignEIP712Batch(
+	ctx context.Context,
 	typedDataList []map[string]interface{},
 	subOrganizationId string,
 	walletAccountAddress common.Address,
@@ -185,7 +200,7 @@ func (s *EthSigner) TKSignEIP712Batch(
 		Type: (*string)(models.ActivityTypeSignRawPayloads.Pointer()),
 	})
 
-	res, err := s.tkClient.V0().Signing.SignRawPayloads(params, s.tkClient.Authenticator)
+	res, err := s.tkClient.V0().Signing.SignRawPayloads(params, s.tkClient.Authenticator, withContext(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("turnkey batch sign EIP-712: %w", err)
 	}
