@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 	"os"
 	"testing"
@@ -18,7 +17,6 @@ const (
 	envAPIURL            = "OTIM_API_URL"
 	envAPIKey            = "OTIM_API_KEY"
 	envTurnkeyPrivateKey = "TURNKEY_PRIVATE_KEY"
-	envOtimDelegateAddr  = "OTIM_DELEGATE_ADDRESS"
 )
 
 // testConfig holds the configuration loaded from environment variables
@@ -26,7 +24,6 @@ type testConfig struct {
 	apiURL            string
 	apiKey            string
 	turnkeyPrivateKey string
-	otimDelegateAddr  common.Address
 }
 
 // loadTestConfig loads configuration from environment variables
@@ -50,13 +47,6 @@ func loadTestConfig(t *testing.T) (*testConfig, error) {
 	}
 	if config.turnkeyPrivateKey == "" {
 		missingVars = append(missingVars, envTurnkeyPrivateKey)
-	}
-
-	delegateAddr := os.Getenv(envOtimDelegateAddr)
-	if delegateAddr == "" {
-		missingVars = append(missingVars, envOtimDelegateAddr)
-	} else {
-		config.otimDelegateAddr = common.HexToAddress(delegateAddr)
 	}
 
 	if len(missingVars) > 0 {
@@ -89,7 +79,6 @@ func createTestBuildRequest() *BuildSettlementOrchestrationRequest {
 		SettlementToken:  usdcAddress, // USDC
 		SettlementAmount: hexutil.Big(*settlementAmount),
 		RecipientAddress: recipientAddress,
-		Metadata:         json.RawMessage(`{"test": "integration-test"}`),
 	}
 }
 
@@ -113,7 +102,6 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 	}
 
 	t.Logf("API URL: %s", config.apiURL)
-	t.Logf("Otim Delegate Address: %s", config.otimDelegateAddr.Hex())
 
 	// Initialize EthSigner with Turnkey
 	t.Log("Initializing EthSigner with Turnkey credentials")
@@ -123,9 +111,9 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 	}
 
 	// Create Client
-	client := NewClient(ethSigner, config.apiURL, config.apiKey, config.otimDelegateAddr)
-	if client == nil {
-		t.Fatal("Failed to create client")
+	client, err := NewClient(ethSigner, config.apiURL, config.apiKey)
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
 	}
 
 	// Phase 2: Build settlement orchestration request
