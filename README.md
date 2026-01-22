@@ -17,7 +17,6 @@ import (
 	"context"
 	"log"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/otimlabs/otim-go-sdk/client"
 	"github.com/otimlabs/otim-go-sdk/signer"
 )
@@ -31,13 +30,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Create the client
-	otimClient := client.NewClient(
+	// Create the client (delegate address is fetched automatically)
+	otimClient, err := client.NewClient(
 		ethSigner,
 		"https://api.otim.com",
 		"your-api-key",
-		common.HexToAddress("0x..."), // Otim delegate address
 	)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Build a settlement orchestration
 	buildResp, err := otimClient.BuildSettlementOrchestration(ctx, &client.BuildSettlementOrchestrationRequest{
@@ -119,7 +120,6 @@ The SDK requires the following configuration:
 | `apiUrl`              | Otim API endpoint URL |
 | `apiKey`              | Your Otim API key |
 | `developerPrivateKey` | Hex-encoded private key for Turnkey authentication |
-| `otimDelegateAddr`    | Otim delegate contract address |
 
 ## Examples
 
@@ -140,7 +140,6 @@ The integration test demonstrates the full orchestration flow:
 export OTIM_API_URL="https://api.otim.com"
 export OTIM_API_KEY="your-api-key"
 export OTIM_PRIVATE_KEY="your-private-key-hex"
-export OTIM_DELEGATE_ADDRESS="0x..."
 
 go test -v ./client -run TestSettlementOrchestrationIntegration
 ```

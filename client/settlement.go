@@ -24,7 +24,7 @@ type BuildSettlementOrchestrationRequest struct {
 	SettlementAmount U256                         `json:"settlementAmount"`
 	PayerAddress     *common.Address              `json:"payerAddress,omitempty"`
 	RecipientAddress common.Address               `json:"recipientAddress"`
-	Metadata         json.RawMessage              `json:"metadata"`
+	Metadata         json.RawMessage              `json:"metadata,omitempty"`
 	DueDate          *time.Time                   `json:"dueDate,omitempty"`
 	MaxRuns          *uint64                      `json:"maxRuns,omitempty"`
 }

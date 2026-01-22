@@ -14,22 +14,40 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+type DelegateAddressResponse struct {
+	Address string `json:"otimDelegateAddress"`
+}
+
 type Client struct {
 	signer.Signer
 	apiKey string
 	apiUrl string
-	// Otim delegate address, should instead be a method parameter if we want it flexible
+	// Otim delegate address, automatically fetched from API during initialization
 	otimDelegateAddr common.Address
 }
 
-func NewClient(signer signer.Signer, apiUrl string, apiKey string, otimDelegateAddr common.Address) *Client {
+func NewClient(signer signer.Signer, apiUrl string, apiKey string) (*Client, error) {
 	apiUrl = strings.TrimRight(apiUrl, "/")
-	return &Client{
-		Signer:           signer,
-		apiKey:           apiKey,
-		apiUrl:           apiUrl,
-		otimDelegateAddr: otimDelegateAddr,
+
+	c := &Client{
+		Signer: signer,
+		apiKey: apiKey,
+		apiUrl: apiUrl,
 	}
+
+	// Fetch delegate address for mainnet (chain ID 1)
+	var resp DelegateAddressResponse
+	if err := c.getJSON(context.Background(), "/config/delegate/address/1", &resp); err != nil {
+		return nil, fmt.Errorf("fetch delegate address: %w", err)
+	}
+
+	if !common.IsHexAddress(resp.Address) {
+		return nil, fmt.Errorf("invalid delegate address from API: %s", resp.Address)
+	}
+
+	c.otimDelegateAddr = common.HexToAddress(resp.Address)
+
+	return c, nil
 }
 
 func (c *Client) doRequest(
