@@ -16,14 +16,14 @@ import (
 const (
 	envAPIURL            = "OTIM_API_URL"
 	envAPIKey            = "OTIM_API_KEY"
-	envTurnkeyPrivateKey = "TURNKEY_PRIVATE_KEY"
+	envPrivateKey = "OTIM_PRIVATE_KEY"
 )
 
 // testConfig holds the configuration loaded from environment variables
 type testConfig struct {
 	apiURL            string
 	apiKey            string
-	turnkeyPrivateKey string
+	developerPrivateKey string
 }
 
 // loadTestConfig loads configuration from environment variables
@@ -32,9 +32,9 @@ func loadTestConfig(t *testing.T) (*testConfig, error) {
 	t.Helper()
 
 	config := &testConfig{
-		apiURL:            os.Getenv(envAPIURL),
-		apiKey:            os.Getenv(envAPIKey),
-		turnkeyPrivateKey: os.Getenv(envTurnkeyPrivateKey),
+		apiURL:              os.Getenv(envAPIURL),
+		apiKey:              os.Getenv(envAPIKey),
+		developerPrivateKey: os.Getenv(envPrivateKey),
 	}
 
 	// Validate required environment variables
@@ -45,8 +45,8 @@ func loadTestConfig(t *testing.T) (*testConfig, error) {
 	if config.apiKey == "" {
 		missingVars = append(missingVars, envAPIKey)
 	}
-	if config.turnkeyPrivateKey == "" {
-		missingVars = append(missingVars, envTurnkeyPrivateKey)
+	if config.developerPrivateKey == "" {
+		missingVars = append(missingVars, envPrivateKey)
 	}
 
 	if len(missingVars) > 0 {
@@ -105,7 +105,7 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 
 	// Initialize EthSigner with Turnkey
 	t.Log("Initializing EthSigner with Turnkey credentials")
-	ethSigner, err := signer.NewEthSigner(config.turnkeyPrivateKey)
+	ethSigner, err := signer.NewEthSigner(config.developerPrivateKey)
 	if err != nil {
 		t.Fatalf("Failed to create EthSigner: %v", err)
 	}

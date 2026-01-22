@@ -24,8 +24,8 @@ import (
 func main() {
 	ctx := context.Background()
 
-	// Initialize the signer with your Turnkey private key
-	ethSigner, err := signer.NewEthSigner("your-turnkey-private-key-hex")
+	// Initialize the signer with your private key
+	ethSigner, err := signer.NewEthSigner("private-key-hex-string")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -33,7 +33,7 @@ func main() {
 	// Create the client (delegate address is fetched automatically)
 	otimClient, err := client.NewClient(
 		ethSigner,
-		"https://api.otim.xyz",
+		"https://api.otim.com",
 		"your-api-key",
 	)
 	if err != nil {
@@ -115,13 +115,11 @@ Generated Go bindings for Otim action contracts, including:
 
 The SDK requires the following configuration:
 
-| Parameter | Description |
-|-----------|-------------|
-| `apiUrl` | Otim API endpoint URL |
-| `apiKey` | Your Otim API key |
-| `turnkeyPrivateKey` | Hex-encoded private key for Turnkey authentication |
-
-**Note:** The Otim delegate contract address is automatically fetched from the API during client initialization. This address is the same on all mainnet chains.
+| Parameter             | Description |
+|-----------------------|-------------|
+| `apiUrl`              | Otim API endpoint URL |
+| `apiKey`              | Your Otim API key |
+| `developerPrivateKey` | Hex-encoded private key for Turnkey authentication |
 
 ## Examples
 
@@ -139,9 +137,9 @@ The integration test demonstrates the full orchestration flow:
 ### Running the Integration Test
 
 ```bash
-export OTIM_API_URL="https://api.otim.xyz"
+export OTIM_API_URL="https://api.otim.com"
 export OTIM_API_KEY="your-api-key"
-export TURNKEY_PRIVATE_KEY="your-turnkey-private-key-hex"
+export OTIM_PRIVATE_KEY="your-private-key-hex"
 
 go test -v ./client -run TestSettlementOrchestrationIntegration
 ```
