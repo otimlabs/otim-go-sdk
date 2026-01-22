@@ -14,15 +14,15 @@ import (
 
 // Environment variable names
 const (
-	envAPIURL            = "OTIM_API_URL"
-	envAPIKey            = "OTIM_API_KEY"
+	envAPIURL     = "OTIM_API_URL"
+	envAPIKey     = "OTIM_API_KEY"
 	envPrivateKey = "OTIM_PRIVATE_KEY"
 )
 
 // testConfig holds the configuration loaded from environment variables
 type testConfig struct {
-	apiURL            string
-	apiKey            string
+	apiURL              string
+	apiKey              string
 	developerPrivateKey string
 }
 
