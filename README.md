@@ -124,65 +124,6 @@ buildReq := &client.BuildSettlementOrchestrationRequest{
 }
 ```
 
-## Metadata Types
-
-Orchestrations can include optional metadata through the `OrchestrationMetadata` interface:
-
-### Payment Request Metadata
-
-For payment request orchestrations:
-
-```go
-dueDate := time.Now().Add(30 * 24 * time.Hour) // 30 days from now
-note := "Invoice #12345"
-invoiceId := "inv_12345"
-
-metadata := &client.PaymentRequestMetadata{
-	Token:              "USDC",
-	AmountDue:          "150.00",
-	Currency:           "USD",
-	DueDate:            &dueDate,
-	Note:               &note,
-	FromAccountAddress: common.HexToAddress("0x1234..."),
-	Payer: &client.Payer{
-		Name:    "John Doe",
-		Address: common.HexToAddress("0x5678..."),
-	},
-	Source:    "QuickBooks",
-	InvoiceId: &invoiceId,
-}
-
-var metadataInterface client.OrchestrationMetadata = metadata
-
-buildReq := &client.BuildSettlementOrchestrationRequest{
-	Params: &client.SettlementParams{
-		// ... settlement params
-	},
-	Metadata: &metadataInterface,
-}
-```
-
-### Auto-Earn Metadata
-
-For auto-earn vault deposit orchestrations:
-
-```go
-metadata := &client.AutoEarnMetadata{
-	TokenSymbol:  "USDC",
-	VaultAddress: common.HexToAddress("0x1234..."),
-	VaultName:    "Aave USDC Vault",
-}
-
-var metadataInterface client.OrchestrationMetadata = metadata
-
-buildReq := &client.BuildSettlementOrchestrationRequest{
-	Params: &client.VaultWithdrawSettlementParams{
-		// ... vault params
-	},
-	Metadata: &metadataInterface,
-}
-```
-
 ## Packages
 
 ### `client`
