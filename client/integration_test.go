@@ -143,11 +143,13 @@ func createTestBuildRequest() *BuildSettlementOrchestrationRequest {
 	}
 
 	return &BuildSettlementOrchestrationRequest{
-		AcceptedTokens:   acceptedTokens,
-		SettlementChain:  1,           // Ethereum mainnet
-		SettlementToken:  usdcAddress, // USDC
-		SettlementAmount: hexutil.Big(*settlementAmount),
-		RecipientAddress: recipientAddress,
+		Params: &SettlementParams{
+			AcceptedTokens:    acceptedTokens,
+			SettlementChainId: 1,           // Ethereum mainnet
+			SettlementToken:   usdcAddress, // USDC
+			SettlementAmount:  hexutil.Big(*settlementAmount),
+			RecipientAddress:  recipientAddress,
+		},
 	}
 }
 
