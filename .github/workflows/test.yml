@@ -1,0 +1,34 @@
+name: Test SDK
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
+        with:
+          go-version: '1.25'
+          cache: true
+
+      - run: go test -v -short -race ./...
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
+        with:
+          go-version: '1.25'
+          cache: true
+
+      - run: go test -v -run TestSettlementOrchestrationIntegration ./client
+        env:
+          OTIM_API_URL: ${{ secrets.OTIM_API_URL }}
+          OTIM_API_KEY: ${{ secrets.OTIM_API_KEY }}
+          OTIM_PRIVATE_KEY: ${{ secrets.OTIM_PRIVATE_KEY }}
