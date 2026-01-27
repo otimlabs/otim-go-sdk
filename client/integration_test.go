@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"os"
 	"testing"
@@ -10,6 +11,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/go-openapi/runtime"
+	"github.com/tkhq/go-sdk/pkg/api/client/wallets"
+	"github.com/tkhq/go-sdk/pkg/api/models"
+	"github.com/tkhq/go-sdk/pkg/util"
 )
 
 // Environment variable names
@@ -56,9 +61,46 @@ func loadTestConfig(t *testing.T) (*testConfig, error) {
 	return config, nil
 }
 
+// deleteWalletsInternal is a test-only helper that deletes wallets from a Turnkey sub-organization.
+// This function is intentionally not part of the public SDK API to prevent accidental data loss.
+// It sets deleteWithoutExport=true to allow deletion of non-exported wallets.
+func deleteWalletsInternal(ctx context.Context, ethSigner *signer.EthSigner, subOrgID string, walletIds []string) error {
+	if len(walletIds) == 0 {
+		return nil
+	}
+
+	// Get the Turnkey client for testing purposes
+	tkClient := ethSigner.TKClientForTesting()
+
+	deleteWithoutExport := true
+	params := wallets.NewDeleteWalletsParams().WithBody(&models.DeleteWalletsRequest{
+		OrganizationID: &subOrgID,
+		TimestampMs:    util.RequestTimestamp(),
+		Parameters: &models.DeleteWalletsIntent{
+			WalletIds:           walletIds,
+			DeleteWithoutExport: &deleteWithoutExport,
+		},
+		Type: (*string)(models.ActivityTypeDeleteWallets.Pointer()),
+	})
+
+	// Use withContext helper for the Turnkey API call
+	withContext := func(ctx context.Context) func(*runtime.ClientOperation) {
+		return func(op *runtime.ClientOperation) {
+			op.Context = ctx
+		}
+	}
+
+	_, err := tkClient.V0().Wallets.DeleteWallets(params, tkClient.Authenticator, withContext(ctx))
+	if err != nil {
+		return fmt.Errorf("turnkey delete wallets: %w", err)
+	}
+
+	return nil
+}
+
 // cleanupWallets lists and deletes all wallets in the specified Turnkey sub-organization.
 // This function logs cleanup actions but does not fail the test if cleanup encounters errors.
-func cleanupWallets(t *testing.T, ctx context.Context, client *Client, subOrgID string) {
+func cleanupWallets(t *testing.T, ctx context.Context, client *Client, subOrgID string, ethSigner *signer.EthSigner) {
 	t.Helper()
 
 	t.Logf("Starting wallet cleanup for sub-org: %s", subOrgID)
@@ -77,8 +119,8 @@ func cleanupWallets(t *testing.T, ctx context.Context, client *Client, subOrgID 
 
 	t.Logf("Found %d wallet(s) to delete: %v", len(walletIds), walletIds)
 
-	// Delete all wallets
-	err = client.TKDeleteWallets(ctx, subOrgID, walletIds)
+	// Delete all wallets using internal test helper
+	err = deleteWalletsInternal(ctx, ethSigner, subOrgID, walletIds)
 	if err != nil {
 		t.Logf("Warning: Failed to delete wallets during cleanup: %v", err)
 		return
@@ -157,12 +199,12 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 
 	// Cleanup wallets before test
 	t.Log("Cleaning up wallets before test")
-	cleanupWallets(t, ctx, client, subOrgID)
+	cleanupWallets(t, ctx, client, subOrgID, ethSigner)
 
 	// Setup cleanup after test (runs even if test fails)
 	t.Cleanup(func() {
 		t.Log("Cleaning up wallets after test")
-		cleanupWallets(t, context.Background(), client, subOrgID)
+		cleanupWallets(t, context.Background(), client, subOrgID, ethSigner)
 	})
 
 	// Phase 2: Build settlement orchestration request

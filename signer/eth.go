@@ -240,30 +240,9 @@ func (s *EthSigner) TKListWallets(ctx context.Context, subOrganizationId string)
 	return walletIds, nil
 }
 
-// TKDeleteWallets deletes wallets from a Turnkey sub-organization.
-// The deleteWithoutExport parameter is set to true to allow deletion of non-exported wallets.
-// Returns an error if the deletion fails.
-func (s *EthSigner) TKDeleteWallets(ctx context.Context, subOrganizationId string, walletIds []string) error {
-	// Handle empty wallet list gracefully
-	if len(walletIds) == 0 {
-		return nil
-	}
-
-	deleteWithoutExport := true
-	params := wallets.NewDeleteWalletsParams().WithBody(&models.DeleteWalletsRequest{
-		OrganizationID: &subOrganizationId,
-		TimestampMs:    util.RequestTimestamp(),
-		Parameters: &models.DeleteWalletsIntent{
-			WalletIds:           walletIds,
-			DeleteWithoutExport: &deleteWithoutExport,
-		},
-		Type: (*string)(models.ActivityTypeDeleteWallets.Pointer()),
-	})
-
-	_, err := s.tkClient.V0().Wallets.DeleteWallets(params, s.tkClient.Authenticator, withContext(ctx))
-	if err != nil {
-		return fmt.Errorf("turnkey delete wallets: %w", err)
-	}
-
-	return nil
+// TKClientForTesting returns the underlying Turnkey SDK client for testing purposes only.
+// WARNING: This method is intended for internal testing only and should not be used in production code.
+// The returned client provides low-level access to Turnkey APIs including destructive operations.
+func (s *EthSigner) TKClientForTesting() *sdk.Client {
+	return s.tkClient
 }

@@ -34,8 +34,6 @@ type Signer interface {
 	TKSignEIP712Batch(ctx context.Context, typedDataList []map[string]interface{}, subOrganizationId string, walletAccountAddress common.Address) ([]*Signature, error)
 	// TKListWallets lists all wallets in a Turnkey sub-organization
 	TKListWallets(ctx context.Context, subOrganizationId string) ([]string, error)
-	// TKDeleteWallets deletes wallets from a Turnkey sub-organization
-	TKDeleteWallets(ctx context.Context, subOrganizationId string, walletIds []string) error
 }
 
 // Signature is a struct representing an Ethereum ECDSA signature.
