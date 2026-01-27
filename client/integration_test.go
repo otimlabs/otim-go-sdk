@@ -56,6 +56,37 @@ func loadTestConfig(t *testing.T) (*testConfig, error) {
 	return config, nil
 }
 
+// cleanupWallets lists and deletes all wallets in the specified Turnkey sub-organization.
+// This function logs cleanup actions but does not fail the test if cleanup encounters errors.
+func cleanupWallets(t *testing.T, ctx context.Context, client *Client, subOrgID string) {
+	t.Helper()
+
+	t.Logf("Starting wallet cleanup for sub-org: %s", subOrgID)
+
+	// List all wallets in the sub-organization
+	walletIds, err := client.TKListWallets(ctx, subOrgID)
+	if err != nil {
+		t.Logf("Warning: Failed to list wallets during cleanup: %v", err)
+		return
+	}
+
+	if len(walletIds) == 0 {
+		t.Log("No wallets to clean up")
+		return
+	}
+
+	t.Logf("Found %d wallet(s) to delete: %v", len(walletIds), walletIds)
+
+	// Delete all wallets
+	err = client.TKDeleteWallets(ctx, subOrgID, walletIds)
+	if err != nil {
+		t.Logf("Warning: Failed to delete wallets during cleanup: %v", err)
+		return
+	}
+
+	t.Logf("Successfully deleted %d wallet(s)", len(walletIds))
+}
+
 // createTestBuildRequest creates a sample BuildSettlementOrchestrationRequest for testing
 func createTestBuildRequest() *BuildSettlementOrchestrationRequest {
 	// Test data: simple settlement request
@@ -115,6 +146,24 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
+
+	// Fetch sub-organization ID from Otim API
+	t.Log("Fetching sub-organization ID from Otim API")
+	subOrgID, err := client.GetSubOrganization(ctx)
+	if err != nil {
+		t.Fatalf("Failed to fetch sub-organization ID: %v", err)
+	}
+	t.Logf("Sub-organization ID: %s", subOrgID)
+
+	// Cleanup wallets before test
+	t.Log("Cleaning up wallets before test")
+	cleanupWallets(t, ctx, client, subOrgID)
+
+	// Setup cleanup after test (runs even if test fails)
+	t.Cleanup(func() {
+		t.Log("Cleaning up wallets after test")
+		cleanupWallets(t, context.Background(), client, subOrgID)
+	})
 
 	// Phase 2: Build settlement orchestration request
 	t.Log("Phase 2: Building settlement orchestration request")

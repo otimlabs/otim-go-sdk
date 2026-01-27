@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/tkhq/go-sdk"
 	"github.com/tkhq/go-sdk/pkg/api/client/signing"
+	"github.com/tkhq/go-sdk/pkg/api/client/wallets"
 	"github.com/tkhq/go-sdk/pkg/api/models"
 	"github.com/tkhq/go-sdk/pkg/apikey"
 	"github.com/tkhq/go-sdk/pkg/util"
@@ -211,4 +212,58 @@ func (s *EthSigner) TKSignEIP712Batch(
 	}
 
 	return SigsFromTurnkeyBatchResult(res.Payload.Activity.Result.SignRawPayloadsResult.Signatures)
+}
+
+// TKListWallets lists all wallets in a Turnkey sub-organization.
+// Returns a slice of wallet IDs.
+func (s *EthSigner) TKListWallets(ctx context.Context, subOrganizationId string) ([]string, error) {
+	params := wallets.NewGetWalletsParams().WithBody(&models.GetWalletsRequest{
+		OrganizationID: &subOrganizationId,
+	})
+
+	res, err := s.tkClient.V0().Wallets.GetWallets(params, s.tkClient.Authenticator, withContext(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("turnkey list wallets: %w", err)
+	}
+
+	if res.Payload == nil || res.Payload.Wallets == nil {
+		return []string{}, nil
+	}
+
+	walletIds := make([]string, 0, len(res.Payload.Wallets))
+	for _, wallet := range res.Payload.Wallets {
+		if wallet.WalletID != nil {
+			walletIds = append(walletIds, *wallet.WalletID)
+		}
+	}
+
+	return walletIds, nil
+}
+
+// TKDeleteWallets deletes wallets from a Turnkey sub-organization.
+// The deleteWithoutExport parameter is set to true to allow deletion of non-exported wallets.
+// Returns an error if the deletion fails.
+func (s *EthSigner) TKDeleteWallets(ctx context.Context, subOrganizationId string, walletIds []string) error {
+	// Handle empty wallet list gracefully
+	if len(walletIds) == 0 {
+		return nil
+	}
+
+	deleteWithoutExport := true
+	params := wallets.NewDeleteWalletsParams().WithBody(&models.DeleteWalletsRequest{
+		OrganizationID: &subOrganizationId,
+		TimestampMs:    util.RequestTimestamp(),
+		Parameters: &models.DeleteWalletsIntent{
+			WalletIds:           walletIds,
+			DeleteWithoutExport: &deleteWithoutExport,
+		},
+		Type: (*string)(models.ActivityTypeDeleteWallets.Pointer()),
+	})
+
+	_, err := s.tkClient.V0().Wallets.DeleteWallets(params, s.tkClient.Authenticator, withContext(ctx))
+	if err != nil {
+		return fmt.Errorf("turnkey delete wallets: %w", err)
+	}
+
+	return nil
 }
