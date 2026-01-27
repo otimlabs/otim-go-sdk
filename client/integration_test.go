@@ -105,7 +105,6 @@ func cleanupWallets(t *testing.T, ctx context.Context, client *Client, subOrgID 
 
 	t.Logf("Starting wallet cleanup for sub-org: %s", subOrgID)
 
-	// List all wallets in the sub-organization
 	walletIds, err := client.TKListWallets(ctx, subOrgID)
 	if err != nil {
 		t.Logf("Warning: Failed to list wallets during cleanup: %v", err)
@@ -119,7 +118,6 @@ func cleanupWallets(t *testing.T, ctx context.Context, client *Client, subOrgID 
 
 	t.Logf("Found %d wallet(s) to delete: %v", len(walletIds), walletIds)
 
-	// Delete all wallets using internal test helper
 	err = deleteWalletsInternal(ctx, ethSigner, subOrgID, walletIds)
 	if err != nil {
 		t.Logf("Warning: Failed to delete wallets during cleanup: %v", err)
