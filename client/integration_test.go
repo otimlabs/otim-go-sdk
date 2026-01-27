@@ -167,7 +167,6 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Phase 1: Setup - Load configuration and initialize client
 	t.Log("Phase 1: Loading configuration from environment variables")
 	config, err := loadTestConfig(t)
 	if err != nil {
@@ -176,20 +175,18 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 
 	t.Logf("API URL: %s", config.apiURL)
 
-	// Initialize EthSigner with Turnkey
 	t.Log("Initializing EthSigner with Turnkey credentials")
 	ethSigner, err := signer.NewEthSigner(config.developerPrivateKey)
 	if err != nil {
 		t.Fatalf("Failed to create EthSigner: %v", err)
 	}
 
-	// Create Client
+	t.Log("Creating client")
 	client, err := NewClient(ethSigner, config.apiURL, config.apiKey)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	// Fetch sub-organization ID from Otim API
 	t.Log("Fetching sub-organization ID from Otim API")
 	subOrgID, err := client.GetSubOrganization(ctx)
 	if err != nil {
@@ -197,21 +194,17 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 	}
 	t.Logf("Sub-organization ID: %s", subOrgID)
 
-	// Cleanup wallets before test
 	t.Log("Cleaning up wallets before test")
 	cleanupWallets(t, ctx, client, subOrgID, ethSigner)
 
-	// Setup cleanup after test (runs even if test fails)
 	t.Cleanup(func() {
 		t.Log("Cleaning up wallets after test")
 		cleanupWallets(t, context.Background(), client, subOrgID, ethSigner)
 	})
 
-	// Phase 2: Build settlement orchestration request
 	t.Log("Phase 2: Building settlement orchestration request")
 	buildRequest := createTestBuildRequest()
 
-	// Phase 3: Call BuildSettlementOrchestration API
 	t.Log("Phase 3: Calling BuildSettlementOrchestration API")
 	buildResponse, err := client.BuildSettlementOrchestration(ctx, buildRequest)
 	if err != nil {
@@ -234,7 +227,6 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 	t.Logf("Build Response - Instructions: %d", len(buildResponse.Instructions))
 	t.Logf("Build Response - Completion Instructions: %d", len(buildResponse.CompletionInstructions))
 
-	// Phase 4: Sign delegation and instructions via Turnkey
 	t.Log("Phase 4: Signing delegation and instructions with Turnkey")
 	newRequest, err := client.NewOrchestrationFromBuild(ctx, buildResponse)
 	if err != nil {
@@ -256,14 +248,12 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 
 	t.Logf("All %d instructions signed successfully", len(newRequest.Instructions)+len(newRequest.CompletionInstructions))
 
-	// Phase 5: Submit to NewOrchestration API
 	t.Log("Phase 5: Submitting to NewOrchestration API")
 	err = client.NewOrchestration(ctx, newRequest)
 	if err != nil {
 		t.Fatalf("NewOrchestration failed: %v", err)
 	}
 
-	// Success!
 	t.Log("✓ Integration test completed successfully")
 	t.Logf("✓ Full orchestration flow validated for RequestID: %s", buildResponse.RequestID)
 }
