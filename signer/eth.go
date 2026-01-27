@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/tkhq/go-sdk"
 	"github.com/tkhq/go-sdk/pkg/api/client/signing"
+	"github.com/tkhq/go-sdk/pkg/api/client/wallets"
 	"github.com/tkhq/go-sdk/pkg/api/models"
 	"github.com/tkhq/go-sdk/pkg/apikey"
 	"github.com/tkhq/go-sdk/pkg/util"
@@ -211,4 +212,37 @@ func (s *EthSigner) TKSignEIP712Batch(
 	}
 
 	return SigsFromTurnkeyBatchResult(res.Payload.Activity.Result.SignRawPayloadsResult.Signatures)
+}
+
+// TKListWallets lists all wallets in a Turnkey sub-organization.
+// Returns a slice of wallet IDs.
+func (s *EthSigner) TKListWallets(ctx context.Context, subOrganizationId string) ([]string, error) {
+	params := wallets.NewGetWalletsParams().WithBody(&models.GetWalletsRequest{
+		OrganizationID: &subOrganizationId,
+	})
+
+	res, err := s.tkClient.V0().Wallets.GetWallets(params, s.tkClient.Authenticator, withContext(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("turnkey list wallets: %w", err)
+	}
+
+	if res.Payload == nil || res.Payload.Wallets == nil {
+		return []string{}, nil
+	}
+
+	walletIds := make([]string, 0, len(res.Payload.Wallets))
+	for _, wallet := range res.Payload.Wallets {
+		if wallet.WalletID != nil {
+			walletIds = append(walletIds, *wallet.WalletID)
+		}
+	}
+
+	return walletIds, nil
+}
+
+// TKClientForTesting returns the underlying Turnkey SDK client for testing purposes only.
+// WARNING: This method is intended for internal testing only and should not be used in production code.
+// The returned client provides low-level access to Turnkey APIs including destructive operations.
+func (s *EthSigner) TKClientForTesting() *sdk.Client {
+	return s.tkClient
 }

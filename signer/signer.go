@@ -2,6 +2,7 @@ package signer
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"strconv"
 
@@ -31,6 +32,8 @@ type Signer interface {
 	TKSignEIP712(ctx context.Context, typedData map[string]interface{}, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error)
 	// TKSignEIP712Batch signs multiple EIP-712 typed data payloads using the Turnkey batch API
 	TKSignEIP712Batch(ctx context.Context, typedDataList []map[string]interface{}, subOrganizationId string, walletAccountAddress common.Address) ([]*Signature, error)
+	// TKListWallets lists all wallets in a Turnkey sub-organization
+	TKListWallets(ctx context.Context, subOrganizationId string) ([]string, error)
 }
 
 // Signature is a struct representing an Ethereum ECDSA signature.
@@ -41,7 +44,6 @@ type Signature struct {
 }
 
 // SigFromTurnkeyResult converts a Turnkey SignRawPayloadResult to a Signature
-// TODO: Needs to be tested.
 func SigFromTurnkeyResult(res *models.SignRawPayloadResult) (*Signature, error) {
 	if res == nil || res.V == nil || res.S == nil || res.R == nil {
 		return nil, fmt.Errorf("nil turnkey result or signature")
@@ -54,24 +56,22 @@ func SigFromTurnkeyResult(res *models.SignRawPayloadResult) (*Signature, error) 
 		return nil, fmt.Errorf("parse V: %w", err)
 	}
 
-	// R and S are hex strings; add 0x prefix if missing for uint256.FromHex
+	// R and S are hex strings; decode to bytes and use SetBytes
+	// (uint256.FromHex rejects hex with leading zeros, which Turnkey may return)
 	rHex := *res.R
-	if len(rHex) < 2 || rHex[:2] != "0x" {
-		rHex = "0x" + rHex
-	}
 	sHex := *res.S
-	if len(sHex) < 2 || sHex[:2] != "0x" {
-		sHex = "0x" + sHex
+
+	rBytes, err := hex.DecodeString(rHex)
+	if err != nil {
+		return nil, fmt.Errorf("decode R: %w", err)
+	}
+	sBytes, err := hex.DecodeString(sHex)
+	if err != nil {
+		return nil, fmt.Errorf("decode S: %w", err)
 	}
 
-	r, err := uint256.FromHex(rHex)
-	if err != nil {
-		return nil, fmt.Errorf("parse R: %w", err)
-	}
-	s, err := uint256.FromHex(sHex)
-	if err != nil {
-		return nil, fmt.Errorf("parse S: %w", err)
-	}
+	r := new(uint256.Int).SetBytes(rBytes)
+	s := new(uint256.Int).SetBytes(sBytes)
 
 	return &Signature{
 		V: uint8(vParsed),
