@@ -136,7 +136,7 @@ The integration test demonstrates the full orchestration flow:
 
 ### Running the Integration Test
 
-**WARNING**: if you run this integration test with your production credentials, all wallets will be deleted and orchestrations canceled. Only run with test credentials.
+**WARNING**: if you run this integration test with your production credentials, all wallets will be deleted and orchestrations canceled due to test cleanup. Only run with test credentials.
 
 ```bash
 export OTIM_API_URL="https://api.otim.com"
