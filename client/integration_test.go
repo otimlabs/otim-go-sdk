@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"os"
 	"testing"
@@ -10,6 +11,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/go-openapi/runtime"
+	"github.com/tkhq/go-sdk/pkg/api/client/wallets"
+	"github.com/tkhq/go-sdk/pkg/api/models"
+	"github.com/tkhq/go-sdk/pkg/util"
 )
 
 // Environment variable names
@@ -56,6 +61,70 @@ func loadTestConfig(t *testing.T) (*testConfig, error) {
 	return config, nil
 }
 
+// deleteWalletsInternal is a test-only helper that deletes wallets from a Turnkey sub-organization.
+// This function is intentionally not part of the public SDK API to prevent accidental data loss.
+// It sets deleteWithoutExport=true to allow deletion of non-exported wallets.
+func deleteWalletsInternal(ctx context.Context, ethSigner *signer.EthSigner, subOrgID string, walletIds []string) error {
+	if len(walletIds) == 0 {
+		return nil
+	}
+
+	tkClient := ethSigner.TKClientForTesting()
+
+	deleteWithoutExport := true
+	params := wallets.NewDeleteWalletsParams().WithBody(&models.DeleteWalletsRequest{
+		OrganizationID: &subOrgID,
+		TimestampMs:    util.RequestTimestamp(),
+		Parameters: &models.DeleteWalletsIntent{
+			WalletIds:           walletIds,
+			DeleteWithoutExport: &deleteWithoutExport,
+		},
+		Type: (*string)(models.ActivityTypeDeleteWallets.Pointer()),
+	})
+
+	withContext := func(ctx context.Context) func(*runtime.ClientOperation) {
+		return func(op *runtime.ClientOperation) {
+			op.Context = ctx
+		}
+	}
+
+	_, err := tkClient.V0().Wallets.DeleteWallets(params, tkClient.Authenticator, withContext(ctx))
+	if err != nil {
+		return fmt.Errorf("turnkey delete wallets: %w", err)
+	}
+
+	return nil
+}
+
+// cleanupWallets lists and deletes all wallets in the specified Turnkey sub-organization.
+// This function logs cleanup actions but does not fail the test if cleanup encounters errors.
+func cleanupWallets(t *testing.T, ctx context.Context, client *Client, subOrgID string, ethSigner *signer.EthSigner) {
+	t.Helper()
+
+	t.Logf("Starting wallet cleanup for sub-org: %s", subOrgID)
+
+	walletIds, err := client.TKListWallets(ctx, subOrgID)
+	if err != nil {
+		t.Logf("Warning: Failed to list wallets during cleanup: %v", err)
+		return
+	}
+
+	if len(walletIds) == 0 {
+		t.Log("No wallets to clean up")
+		return
+	}
+
+	t.Logf("Found %d wallet(s) to delete: %v", len(walletIds), walletIds)
+
+	err = deleteWalletsInternal(ctx, ethSigner, subOrgID, walletIds)
+	if err != nil {
+		t.Logf("Warning: Failed to delete wallets during cleanup: %v", err)
+		return
+	}
+
+	t.Logf("Successfully deleted %d wallet(s)", len(walletIds))
+}
+
 // createTestBuildRequest creates a sample BuildSettlementOrchestrationRequest for testing
 func createTestBuildRequest() *BuildSettlementOrchestrationRequest {
 	// Test data: simple settlement request
@@ -94,7 +163,6 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Phase 1: Setup - Load configuration and initialize client
 	t.Log("Phase 1: Loading configuration from environment variables")
 	config, err := loadTestConfig(t)
 	if err != nil {
@@ -103,24 +171,36 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 
 	t.Logf("API URL: %s", config.apiURL)
 
-	// Initialize EthSigner with Turnkey
 	t.Log("Initializing EthSigner with Turnkey credentials")
 	ethSigner, err := signer.NewEthSigner(config.developerPrivateKey)
 	if err != nil {
 		t.Fatalf("Failed to create EthSigner: %v", err)
 	}
 
-	// Create Client
+	t.Log("Creating client")
 	client, err := NewClient(ethSigner, config.apiURL, config.apiKey)
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	// Phase 2: Build settlement orchestration request
+	t.Log("Fetching sub-organization ID from Otim API")
+	subOrgID, err := client.GetSubOrganization(ctx)
+	if err != nil {
+		t.Fatalf("Failed to fetch sub-organization ID: %v", err)
+	}
+	t.Logf("Sub-organization ID: %s", subOrgID)
+
+	t.Log("Cleaning up wallets before test")
+	cleanupWallets(t, ctx, client, subOrgID, ethSigner)
+
+	t.Cleanup(func() {
+		t.Log("Cleaning up wallets after test")
+		cleanupWallets(t, context.Background(), client, subOrgID, ethSigner)
+	})
+
 	t.Log("Phase 2: Building settlement orchestration request")
 	buildRequest := createTestBuildRequest()
 
-	// Phase 3: Call BuildSettlementOrchestration API
 	t.Log("Phase 3: Calling BuildSettlementOrchestration API")
 	buildResponse, err := client.BuildSettlementOrchestration(ctx, buildRequest)
 	if err != nil {
@@ -143,7 +223,6 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 	t.Logf("Build Response - Instructions: %d", len(buildResponse.Instructions))
 	t.Logf("Build Response - Completion Instructions: %d", len(buildResponse.CompletionInstructions))
 
-	// Phase 4: Sign delegation and instructions via Turnkey
 	t.Log("Phase 4: Signing delegation and instructions with Turnkey")
 	newRequest, err := client.NewOrchestrationFromBuild(ctx, buildResponse)
 	if err != nil {
@@ -165,14 +244,12 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 
 	t.Logf("All %d instructions signed successfully", len(newRequest.Instructions)+len(newRequest.CompletionInstructions))
 
-	// Phase 5: Submit to NewOrchestration API
 	t.Log("Phase 5: Submitting to NewOrchestration API")
 	err = client.NewOrchestration(ctx, newRequest)
 	if err != nil {
 		t.Fatalf("NewOrchestration failed: %v", err)
 	}
 
-	// Success!
 	t.Log("✓ Integration test completed successfully")
 	t.Logf("✓ Full orchestration flow validated for RequestID: %s", buildResponse.RequestID)
 }

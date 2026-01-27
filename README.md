@@ -115,10 +115,10 @@ Generated Go bindings for Otim action contracts, including:
 
 The SDK requires the following configuration:
 
-| Parameter             | Description |
-|-----------------------|-------------|
-| `apiUrl`              | Otim API endpoint URL |
-| `apiKey`              | Your Otim API key |
+| Parameter             | Description                                        |
+| --------------------- | -------------------------------------------------- |
+| `apiUrl`              | Otim API endpoint URL                              |
+| `apiKey`              | Your Otim API key                                  |
 | `developerPrivateKey` | Hex-encoded private key for Turnkey authentication |
 
 ## Examples
@@ -135,6 +135,8 @@ The integration test demonstrates the full orchestration flow:
 6. Submitting the signed orchestration to the API
 
 ### Running the Integration Test
+
+**WARNING**: if you run this integration test with your production credentials, all wallets will be deleted and orchestrations canceled due to test cleanup. Only run with test credentials.
 
 ```bash
 export OTIM_API_URL="https://api.otim.com"

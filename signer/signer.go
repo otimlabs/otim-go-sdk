@@ -32,6 +32,8 @@ type Signer interface {
 	TKSignEIP712(ctx context.Context, typedData map[string]interface{}, subOrganizationId string, walletAccountAddress common.Address) (*Signature, error)
 	// TKSignEIP712Batch signs multiple EIP-712 typed data payloads using the Turnkey batch API
 	TKSignEIP712Batch(ctx context.Context, typedDataList []map[string]interface{}, subOrganizationId string, walletAccountAddress common.Address) ([]*Signature, error)
+	// TKListWallets lists all wallets in a Turnkey sub-organization
+	TKListWallets(ctx context.Context, subOrganizationId string) ([]string, error)
 }
 
 // Signature is a struct representing an Ethereum ECDSA signature.

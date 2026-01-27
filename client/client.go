@@ -18,6 +18,10 @@ type DelegateAddressResponse struct {
 	Address string `json:"otimDelegateAddress"`
 }
 
+type SubOrganizationResponse struct {
+	SubOrgID string `json:"subOrganizationId"`
+}
+
 type Client struct {
 	signer.Signer
 	apiKey string
@@ -115,4 +119,19 @@ func (c *Client) postJSON(
 	out any,
 ) error {
 	return c.doRequest(ctx, http.MethodPost, path, body, out)
+}
+
+// GetSubOrganization fetches the sub-organization ID from the Otim API.
+// This ID is used to manage Turnkey wallets within the operating account.
+func (c *Client) GetSubOrganization(ctx context.Context) (string, error) {
+	var resp SubOrganizationResponse
+	if err := c.getJSON(ctx, "/operating_accounts/sub_organization", &resp); err != nil {
+		return "", fmt.Errorf("fetch sub-organization: %w", err)
+	}
+
+	if resp.SubOrgID == "" {
+		return "", fmt.Errorf("sub-organization ID is empty")
+	}
+
+	return resp.SubOrgID, nil
 }
