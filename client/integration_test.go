@@ -69,7 +69,6 @@ func deleteWalletsInternal(ctx context.Context, ethSigner *signer.EthSigner, sub
 		return nil
 	}
 
-	// Get the Turnkey client for testing purposes
 	tkClient := ethSigner.TKClientForTesting()
 
 	deleteWithoutExport := true
@@ -83,7 +82,6 @@ func deleteWalletsInternal(ctx context.Context, ethSigner *signer.EthSigner, sub
 		Type: (*string)(models.ActivityTypeDeleteWallets.Pointer()),
 	})
 
-	// Use withContext helper for the Turnkey API call
 	withContext := func(ctx context.Context) func(*runtime.ClientOperation) {
 		return func(op *runtime.ClientOperation) {
 			op.Context = ctx
