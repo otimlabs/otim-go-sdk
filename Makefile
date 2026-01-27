@@ -1,5 +1,8 @@
 .PHONY: update-otim-protocol eth-devtools
 
+test:
+	go test -count=1 ./...
+
 otim-protocol:
 	git clone git@github.com:otimlabs/otim-protocol.git
 
