@@ -17,16 +17,245 @@ type ChainID uint64
 
 type U256 = hexutil.Big
 
+// OrchestrationParams is the interface for settlement orchestration parameters
+type OrchestrationParams interface {
+	orchestrationParams()
+}
+
+// SettlementParams represents standard multi-chain settlement orchestration parameters
+type SettlementParams struct {
+	AcceptedTokens    map[ChainID][]common.Address `json:"acceptedTokens"`
+	SettlementChainId ChainID                      `json:"settlementChainId"`
+	SettlementToken   common.Address               `json:"settlementToken"`
+	SettlementAmount  U256                         `json:"settlementAmount"`
+	RecipientAddress  common.Address               `json:"recipientAddress"`
+}
+
+// VaultWithdrawSettlementParams represents vault withdrawal settlement orchestration parameters
+type VaultWithdrawSettlementParams struct {
+	VaultAddress         common.Address `json:"vaultAddress"`
+	VaultUnderlyingToken common.Address `json:"vaultUnderlyingToken"`
+	VaultChainId         ChainID        `json:"vaultChainId"`
+	SettlementChainId    ChainID        `json:"settlementChainId"`
+	SettlementToken      common.Address `json:"settlementToken"`
+	RecipientAddress     common.Address `json:"recipientAddress"`
+	WithdrawAmount       U256           `json:"withdrawAmount"`
+}
+
+// Implement OrchestrationParams interface
+func (s *SettlementParams) orchestrationParams()              {}
+func (v *VaultWithdrawSettlementParams) orchestrationParams() {}
+
+// OrchestrationMetadata is the interface for orchestration metadata
+type OrchestrationMetadata interface {
+	orchestrationMetadata()
+}
+
+// Payer represents payer information for payment requests
+type Payer struct {
+	Name    string         `json:"name"`
+	Address common.Address `json:"address"`
+}
+
+// PaymentRequestMetadata represents payment request metadata for an orchestration
+type PaymentRequestMetadata struct {
+	Token              string         `json:"token"`
+	AmountDue          string         `json:"amountDue"`
+	Currency           string         `json:"currency"`
+	DueDate            *time.Time     `json:"dueDate,omitempty"`
+	Note               *string        `json:"note,omitempty"`
+	FromAccountAddress common.Address `json:"fromAccountAddress"`
+	Payer              *Payer         `json:"payer,omitempty"`
+	Source             string         `json:"source"`
+	InvoiceId          *string        `json:"invoiceId,omitempty"`
+	InvoiceNumber      *string        `json:"invoiceNumber,omitempty"`
+	AttachmentUrl      *string        `json:"attachmentUrl,omitempty"`
+	AttachmentName     *string        `json:"attachmentName,omitempty"`
+}
+
+// AutoEarnMetadata represents auto-earn vault deposit metadata for an orchestration
+type AutoEarnMetadata struct {
+	TokenSymbol  string         `json:"tokenSymbol"`
+	VaultAddress common.Address `json:"vaultAddress"`
+	VaultName    string         `json:"vaultName"`
+}
+
+// Implement OrchestrationMetadata interface
+func (p *PaymentRequestMetadata) orchestrationMetadata() {}
+func (a *AutoEarnMetadata) orchestrationMetadata()       {}
+
+// BuildSettlementOrchestrationRequest is the request body for the /orchestration/build/settlement endpoint
 type BuildSettlementOrchestrationRequest struct {
-	AcceptedTokens   map[ChainID][]common.Address `json:"acceptedTokens"`
-	SettlementChain  ChainID                      `json:"settlementChain"`
-	SettlementToken  common.Address               `json:"settlementToken"`
-	SettlementAmount U256                         `json:"settlementAmount"`
-	PayerAddress     *common.Address              `json:"payerAddress,omitempty"`
-	RecipientAddress common.Address               `json:"recipientAddress"`
-	Metadata         json.RawMessage              `json:"metadata,omitempty"`
-	DueDate          *time.Time                   `json:"dueDate,omitempty"`
-	MaxRuns          *uint64                      `json:"maxRuns,omitempty"`
+	Params       OrchestrationParams    `json:"params"`
+	PayerAddress *common.Address        `json:"payerAddress,omitempty"`
+	Metadata     *OrchestrationMetadata `json:"metadata,omitempty"`
+	DueDate      *time.Time             `json:"dueDate,omitempty"`
+	MaxRuns      *uint64                `json:"maxRuns,omitempty"`
+}
+
+// MarshalJSON implements custom JSON marshaling for OrchestrationParams (externally tagged)
+func (p SettlementParams) MarshalJSON() ([]byte, error) {
+	type Alias SettlementParams
+	return json.Marshal(map[string]interface{}{
+		"settlement": (Alias)(p),
+	})
+}
+
+// MarshalJSON implements custom JSON marshaling for VaultWithdrawSettlementParams (externally tagged)
+func (v VaultWithdrawSettlementParams) MarshalJSON() ([]byte, error) {
+	type Alias VaultWithdrawSettlementParams
+	return json.Marshal(map[string]interface{}{
+		"vaultWithdrawSettlement": (Alias)(v),
+	})
+}
+
+// MarshalJSON implements custom JSON marshaling for PaymentRequestMetadata
+func (p PaymentRequestMetadata) MarshalJSON() ([]byte, error) {
+	type Alias PaymentRequestMetadata
+	return json.Marshal(&struct {
+		Type string `json:"type"`
+		Alias
+	}{
+		Type:  "PaymentRequest",
+		Alias: (Alias)(p),
+	})
+}
+
+// MarshalJSON implements custom JSON marshaling for AutoEarnMetadata
+func (a AutoEarnMetadata) MarshalJSON() ([]byte, error) {
+	type Alias AutoEarnMetadata
+	return json.Marshal(&struct {
+		Type string `json:"type"`
+		Alias
+	}{
+		Type:  "AutoEarn",
+		Alias: (Alias)(a),
+	})
+}
+
+// MarshalJSON implements custom JSON marshaling for BuildSettlementOrchestrationRequest
+func (r BuildSettlementOrchestrationRequest) MarshalJSON() ([]byte, error) {
+	type Alias BuildSettlementOrchestrationRequest
+	aux := &struct {
+		Params json.RawMessage `json:"params"`
+		*Alias
+	}{
+		Alias: (*Alias)(&r),
+	}
+
+	// Marshal the params field
+	paramsJSON, err := json.Marshal(r.Params)
+	if err != nil {
+		return nil, fmt.Errorf("marshal params: %w", err)
+	}
+	aux.Params = paramsJSON
+
+	// Handle optional metadata
+	if r.Metadata != nil {
+		metadataJSON, err := json.Marshal(*r.Metadata)
+		if err != nil {
+			return nil, fmt.Errorf("marshal metadata: %w", err)
+		}
+		// We need to use a different approach to include metadata
+		return json.Marshal(&struct {
+			Params       json.RawMessage `json:"params"`
+			PayerAddress *common.Address `json:"payerAddress,omitempty"`
+			Metadata     json.RawMessage `json:"metadata,omitempty"`
+			DueDate      *time.Time      `json:"dueDate,omitempty"`
+			MaxRuns      *uint64         `json:"maxRuns,omitempty"`
+		}{
+			Params:       paramsJSON,
+			PayerAddress: r.PayerAddress,
+			Metadata:     metadataJSON,
+			DueDate:      r.DueDate,
+			MaxRuns:      r.MaxRuns,
+		})
+	}
+
+	return json.Marshal(&struct {
+		Params       json.RawMessage `json:"params"`
+		PayerAddress *common.Address `json:"payerAddress,omitempty"`
+		DueDate      *time.Time      `json:"dueDate,omitempty"`
+		MaxRuns      *uint64         `json:"maxRuns,omitempty"`
+	}{
+		Params:       paramsJSON,
+		PayerAddress: r.PayerAddress,
+		DueDate:      r.DueDate,
+		MaxRuns:      r.MaxRuns,
+	})
+}
+
+// UnmarshalJSON implements custom JSON unmarshaling for BuildSettlementOrchestrationRequest
+func (r *BuildSettlementOrchestrationRequest) UnmarshalJSON(data []byte) error {
+	// First unmarshal into a temporary struct to get the raw params and metadata
+	var raw struct {
+		Params       json.RawMessage `json:"params"`
+		PayerAddress *common.Address `json:"payerAddress,omitempty"`
+		Metadata     json.RawMessage `json:"metadata,omitempty"`
+		DueDate      *time.Time      `json:"dueDate,omitempty"`
+		MaxRuns      *uint64         `json:"maxRuns,omitempty"`
+	}
+
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	// Unmarshal params based on variant key (externally tagged)
+	var paramsMap map[string]json.RawMessage
+	if err := json.Unmarshal(raw.Params, &paramsMap); err != nil {
+		return fmt.Errorf("unmarshal params map: %w", err)
+	}
+
+	if settlementData, ok := paramsMap["settlement"]; ok {
+		var params SettlementParams
+		if err := json.Unmarshal(settlementData, &params); err != nil {
+			return fmt.Errorf("unmarshal settlement params: %w", err)
+		}
+		r.Params = &params
+	} else if vaultData, ok := paramsMap["vaultWithdrawSettlement"]; ok {
+		var params VaultWithdrawSettlementParams
+		if err := json.Unmarshal(vaultData, &params); err != nil {
+			return fmt.Errorf("unmarshal vault withdraw settlement params: %w", err)
+		}
+		r.Params = &params
+	} else {
+		return fmt.Errorf("unknown orchestration params type, expected 'settlement' or 'vaultWithdrawSettlement'")
+	}
+
+	// Unmarshal metadata if present
+	if len(raw.Metadata) > 0 {
+		var metadataType struct {
+			Type string `json:"type"`
+		}
+		if err := json.Unmarshal(raw.Metadata, &metadataType); err != nil {
+			return fmt.Errorf("unmarshal metadata type: %w", err)
+		}
+
+		switch metadataType.Type {
+		case "PaymentRequest":
+			var metadata PaymentRequestMetadata
+			if err := json.Unmarshal(raw.Metadata, &metadata); err != nil {
+				return fmt.Errorf("unmarshal payment request metadata: %w", err)
+			}
+			var metadataInterface OrchestrationMetadata = &metadata
+			r.Metadata = &metadataInterface
+		case "AutoEarn":
+			var metadata AutoEarnMetadata
+			if err := json.Unmarshal(raw.Metadata, &metadata); err != nil {
+				return fmt.Errorf("unmarshal auto earn metadata: %w", err)
+			}
+			var metadataInterface OrchestrationMetadata = &metadata
+			r.Metadata = &metadataInterface
+		default:
+			return fmt.Errorf("unknown orchestration metadata type: %s", metadataType.Type)
+		}
+	}
+
+	r.PayerAddress = raw.PayerAddress
+	r.DueDate = raw.DueDate
+	r.MaxRuns = raw.MaxRuns
+
+	return nil
 }
 
 type BuildInstructionResponse struct {

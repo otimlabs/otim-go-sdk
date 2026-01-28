@@ -42,7 +42,15 @@ func main() {
 
 	// Build a settlement orchestration
 	buildResp, err := otimClient.BuildSettlementOrchestration(ctx, &client.BuildSettlementOrchestrationRequest{
-		// ... your settlement parameters
+		Params: &client.SettlementParams{
+			AcceptedTokens: map[client.ChainID][]common.Address{
+				1: {common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")}, // USDC on Ethereum
+			},
+			SettlementChainId: 1, // Ethereum mainnet
+			SettlementToken:   common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"), // USDC
+			SettlementAmount:  hexutil.Big(*big.NewInt(1000000)), // 1 USDC (6 decimals)
+			RecipientAddress:  common.HexToAddress("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"),
+		},
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -59,6 +67,60 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+```
+
+## Orchestration Types
+
+The SDK supports multiple orchestration types through the `OrchestrationParams` interface:
+
+### Standard Settlement
+
+Standard multi-chain settlement orchestration:
+
+```go
+import (
+	"math/big"
+	
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/otimlabs/otim-go-sdk/client"
+)
+
+settlementAmount := big.NewInt(1000000) // 1 USDC (6 decimals)
+usdcAddress := common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
+
+buildReq := &client.BuildSettlementOrchestrationRequest{
+	Params: &client.SettlementParams{
+		AcceptedTokens: map[client.ChainID][]common.Address{
+			1:  {usdcAddress}, // Ethereum
+			10: {common.HexToAddress("0x7F5c764cBc14f9669B88837ca1490cCa17c31607")}, // Optimism USDC
+		},
+		SettlementChainId: 1,
+		SettlementToken:   usdcAddress,
+		SettlementAmount:  hexutil.Big(*settlementAmount),
+		RecipientAddress:  common.HexToAddress("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"),
+	},
+}
+```
+
+### Vault Withdrawal Settlement
+
+Vault withdrawal settlement orchestration for ERC4626 vaults:
+
+```go
+withdrawAmount := big.NewInt(5000000000) // 5000 tokens (assuming 6 decimals)
+
+buildReq := &client.BuildSettlementOrchestrationRequest{
+	Params: &client.VaultWithdrawSettlementParams{
+		VaultAddress:         common.HexToAddress("0x1234..."), // ERC4626 vault address
+		VaultUnderlyingToken: common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"), // USDC
+		VaultChainId:         1, // Ethereum
+		SettlementChainId:    1,
+		SettlementToken:      common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+		RecipientAddress:     common.HexToAddress("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"),
+		WithdrawAmount:       hexutil.Big(*withdrawAmount),
+	},
 }
 ```
 
