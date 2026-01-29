@@ -153,6 +153,70 @@ func createTestBuildRequest() *BuildSettlementOrchestrationRequest {
 	}
 }
 
+// createTestVaultWithdrawBuildRequest creates a VaultWithdrawSettlement request for testing
+func createTestVaultWithdrawSettlementBuildRequest() *BuildSettlementOrchestrationRequest {
+	withdrawAmount := new(big.Int)
+	withdrawAmount.SetString("5000000000", 10) // 5000 USDC (6 decimals)
+
+	// Test vault address (example ERC4626 vault)
+	vaultAddress := common.HexToAddress("0x1234567890123456789012345678901234567890")
+
+	// USDC contract address on Ethereum mainnet
+	usdcAddress := common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
+
+	// Hardcoded recipient address for testing
+	recipientAddress := common.HexToAddress("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0")
+
+	return &BuildSettlementOrchestrationRequest{
+		Params: &VaultWithdrawSettlementParams{
+			VaultAddress:         vaultAddress,
+			VaultUnderlyingToken: usdcAddress,
+			VaultChainId:         1, // Ethereum mainnet
+			SettlementChainId:    1,
+			SettlementToken:      usdcAddress,
+			RecipientAddress:     recipientAddress,
+			WithdrawAmount:       hexutil.Big(*withdrawAmount),
+		},
+	}
+}
+
+// createTestSettlementVaultDepositBuildRequest creates a SettlementVaultDeposit request for testing
+func createTestSettlementVaultDepositBuildRequest() *BuildSettlementOrchestrationRequest {
+	depositAmount := new(big.Int)
+	depositAmount.SetString("1000000000", 10) // 1000 USDC (6 decimals)
+
+	minShares := new(big.Int)
+	minShares.SetString("950000000", 10) // 950 shares minimum (slippage protection)
+
+	// Test vault address (example ERC4626 vault)
+	vaultAddress := common.HexToAddress("0x1234567890123456789012345678901234567890")
+
+	// USDC contract addresses
+	usdcEthereum := common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
+	usdcOptimism := common.HexToAddress("0x7F5c764cBc14f9669B88837ca1490cCa17c31607")
+
+	// Hardcoded recipient address for testing
+	recipientAddress := common.HexToAddress("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0")
+
+	// Accepted tokens: allow USDC on Ethereum and Optimism
+	acceptedTokens := map[ChainID][]common.Address{
+		1:  {usdcEthereum}, // Ethereum mainnet
+		10: {usdcOptimism}, // Optimism
+	}
+
+	return &BuildSettlementOrchestrationRequest{
+		Params: &SettlementVaultDepositParams{
+			AcceptedTokens:       acceptedTokens,
+			VaultChainId:         1, // Ethereum mainnet
+			VaultAddress:         vaultAddress,
+			VaultUnderlyingToken: usdcEthereum,
+			DepositAmount:        hexutil.Big(*depositAmount),
+			RecipientAddress:     recipientAddress,
+			VaultMinTotalShares:  hexutil.Big(*minShares),
+		},
+	}
+}
+
 // TestSettlementOrchestrationIntegration tests the full settlement orchestration flow:
 // 1. Call BuildSettlementOrchestration API
 // 2. Sign the returned delegation and instructions with Turnkey
@@ -253,5 +317,209 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 	}
 
 	t.Log("✓ Integration test completed successfully")
+	t.Logf("✓ Full orchestration flow validated for RequestID: %s", buildResponse.RequestID)
+}
+
+// TestVaultWithdrawSettlementIntegration tests the full vault withdrawal settlement orchestration flow:
+// 1. Call BuildSettlementOrchestration API with VaultWithdrawSettlementParams
+// 2. Sign the returned delegation and instructions with Turnkey
+// 3. Submit to NewOrchestration API
+func TestVaultWithdrawSettlementIntegration(t *testing.T) {
+	// Skip in short mode
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
+	ctx := context.Background()
+
+	t.Log("Phase 1: Loading configuration from environment variables")
+	config, err := loadTestConfig(t)
+	if err != nil {
+		t.Fatalf("Failed to load test config: %v", err)
+	}
+
+	t.Logf("API URL: %s", config.apiURL)
+
+	t.Log("Initializing EthSigner with Turnkey credentials")
+	ethSigner, err := signer.NewEthSigner(config.developerPrivateKey)
+	if err != nil {
+		t.Fatalf("Failed to create EthSigner: %v", err)
+	}
+
+	t.Log("Creating client")
+	client, err := NewClient(ethSigner, config.apiURL, config.apiKey)
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	t.Log("Fetching sub-organization ID from Otim API")
+	subOrgID, err := client.GetSubOrganization(ctx)
+	if err != nil {
+		t.Fatalf("Failed to fetch sub-organization ID: %v", err)
+	}
+	t.Logf("Sub-organization ID: %s", subOrgID)
+
+	t.Log("Cleaning up wallets before test")
+	cleanupWallets(t, ctx, client, subOrgID, ethSigner)
+
+	t.Cleanup(func() {
+		t.Log("Cleaning up wallets after test")
+		cleanupWallets(t, context.Background(), client, subOrgID, ethSigner)
+	})
+
+	t.Log("Phase 2: Building vault withdrawal settlement orchestration request")
+	buildRequest := createTestVaultWithdrawSettlementBuildRequest()
+
+	t.Log("Phase 3: Calling BuildSettlementOrchestration API")
+	buildResponse, err := client.BuildSettlementOrchestration(ctx, buildRequest)
+	if err != nil {
+		t.Fatalf("BuildSettlementOrchestration failed: %v", err)
+	}
+
+	// Validate build response
+	if buildResponse == nil {
+		t.Fatal("BuildSettlementOrchestration returned nil response")
+	}
+	if buildResponse.RequestID == "" {
+		t.Error("BuildResponse missing RequestID")
+	}
+	if buildResponse.EphemeralWalletAddress == (common.Address{}) {
+		t.Error("BuildResponse missing EphemeralWalletAddress")
+	}
+
+	t.Logf("Build Response - RequestID: %s", buildResponse.RequestID)
+	t.Logf("Build Response - Ephemeral Wallet: %s", buildResponse.EphemeralWalletAddress.Hex())
+	t.Logf("Build Response - Instructions: %d", len(buildResponse.Instructions))
+	t.Logf("Build Response - Completion Instructions: %d", len(buildResponse.CompletionInstructions))
+
+	t.Log("Phase 4: Signing delegation and instructions with Turnkey")
+	newRequest, err := client.NewOrchestrationFromBuild(ctx, buildResponse)
+	if err != nil {
+		t.Fatalf("NewOrchestrationFromBuild failed: %v", err)
+	}
+
+	// Validate signed request
+	if newRequest == nil {
+		t.Fatal("NewOrchestrationFromBuild returned nil")
+	}
+	if newRequest.RequestID != buildResponse.RequestID {
+		t.Errorf("RequestID mismatch: got %s, want %s", newRequest.RequestID, buildResponse.RequestID)
+	}
+	if newRequest.SignedAuthorization == "" {
+		t.Error("SignedAuthorization is empty")
+	}
+
+	t.Logf("Signed Authorization length: %d", len(newRequest.SignedAuthorization))
+	t.Logf("All %d instructions signed successfully", len(newRequest.Instructions)+len(newRequest.CompletionInstructions))
+
+	t.Log("Phase 5: Submitting to NewOrchestration API")
+	err = client.NewOrchestration(ctx, newRequest)
+	if err != nil {
+		t.Fatalf("NewOrchestration failed: %v", err)
+	}
+
+	t.Log("✓ Vault withdrawal settlement integration test completed successfully")
+	t.Logf("✓ Full orchestration flow validated for RequestID: %s", buildResponse.RequestID)
+}
+
+// TestSettlementVaultDepositIntegration tests the full settlement vault deposit orchestration flow:
+// 1. Call BuildSettlementOrchestration API with SettlementVaultDepositParams
+// 2. Sign the returned delegation and instructions with Turnkey
+// 3. Submit to NewOrchestration API
+func TestSettlementVaultDepositIntegration(t *testing.T) {
+	// Skip in short mode
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
+
+	ctx := context.Background()
+
+	t.Log("Phase 1: Loading configuration from environment variables")
+	config, err := loadTestConfig(t)
+	if err != nil {
+		t.Fatalf("Failed to load test config: %v", err)
+	}
+
+	t.Logf("API URL: %s", config.apiURL)
+
+	t.Log("Initializing EthSigner with Turnkey credentials")
+	ethSigner, err := signer.NewEthSigner(config.developerPrivateKey)
+	if err != nil {
+		t.Fatalf("Failed to create EthSigner: %v", err)
+	}
+
+	t.Log("Creating client")
+	client, err := NewClient(ethSigner, config.apiURL, config.apiKey)
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	t.Log("Fetching sub-organization ID from Otim API")
+	subOrgID, err := client.GetSubOrganization(ctx)
+	if err != nil {
+		t.Fatalf("Failed to fetch sub-organization ID: %v", err)
+	}
+	t.Logf("Sub-organization ID: %s", subOrgID)
+
+	t.Log("Cleaning up wallets before test")
+	cleanupWallets(t, ctx, client, subOrgID, ethSigner)
+
+	t.Cleanup(func() {
+		t.Log("Cleaning up wallets after test")
+		cleanupWallets(t, context.Background(), client, subOrgID, ethSigner)
+	})
+
+	t.Log("Phase 2: Building settlement vault deposit orchestration request")
+	buildRequest := createTestSettlementVaultDepositBuildRequest()
+
+	t.Log("Phase 3: Calling BuildSettlementOrchestration API")
+	buildResponse, err := client.BuildSettlementOrchestration(ctx, buildRequest)
+	if err != nil {
+		t.Fatalf("BuildSettlementOrchestration failed: %v", err)
+	}
+
+	// Validate build response
+	if buildResponse == nil {
+		t.Fatal("BuildSettlementOrchestration returned nil response")
+	}
+	if buildResponse.RequestID == "" {
+		t.Error("BuildResponse missing RequestID")
+	}
+	if buildResponse.EphemeralWalletAddress == (common.Address{}) {
+		t.Error("BuildResponse missing EphemeralWalletAddress")
+	}
+
+	t.Logf("Build Response - RequestID: %s", buildResponse.RequestID)
+	t.Logf("Build Response - Ephemeral Wallet: %s", buildResponse.EphemeralWalletAddress.Hex())
+	t.Logf("Build Response - Instructions: %d", len(buildResponse.Instructions))
+	t.Logf("Build Response - Completion Instructions: %d", len(buildResponse.CompletionInstructions))
+
+	t.Log("Phase 4: Signing delegation and instructions with Turnkey")
+	newRequest, err := client.NewOrchestrationFromBuild(ctx, buildResponse)
+	if err != nil {
+		t.Fatalf("NewOrchestrationFromBuild failed: %v", err)
+	}
+
+	// Validate signed request
+	if newRequest == nil {
+		t.Fatal("NewOrchestrationFromBuild returned nil")
+	}
+	if newRequest.RequestID != buildResponse.RequestID {
+		t.Errorf("RequestID mismatch: got %s, want %s", newRequest.RequestID, buildResponse.RequestID)
+	}
+	if newRequest.SignedAuthorization == "" {
+		t.Error("SignedAuthorization is empty")
+	}
+
+	t.Logf("Signed Authorization length: %d", len(newRequest.SignedAuthorization))
+	t.Logf("All %d instructions signed successfully", len(newRequest.Instructions)+len(newRequest.CompletionInstructions))
+
+	t.Log("Phase 5: Submitting to NewOrchestration API")
+	err = client.NewOrchestration(ctx, newRequest)
+	if err != nil {
+		t.Fatalf("NewOrchestration failed: %v", err)
+	}
+
+	t.Log("✓ Settlement vault deposit integration test completed successfully")
 	t.Logf("✓ Full orchestration flow validated for RequestID: %s", buildResponse.RequestID)
 }

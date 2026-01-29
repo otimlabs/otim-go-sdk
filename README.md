@@ -81,7 +81,7 @@ Standard multi-chain settlement orchestration:
 ```go
 import (
 	"math/big"
-	
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/otimlabs/otim-go-sdk/client"
@@ -120,6 +120,30 @@ buildReq := &client.BuildSettlementOrchestrationRequest{
 		SettlementToken:      common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
 		RecipientAddress:     common.HexToAddress("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"),
 		WithdrawAmount:       hexutil.Big(*withdrawAmount),
+	},
+}
+```
+
+### Settlement Vault Deposit
+
+Settlement vault deposit orchestration for ERC4626 vaults. Accepts multi-chain payments and deposits them into a vault:
+
+```go
+depositAmount := big.NewInt(1000000000) // 1000 tokens (assuming 6 decimals)
+minShares := big.NewInt(950000000) // Minimum shares for slippage protection
+
+buildReq := &client.BuildSettlementOrchestrationRequest{
+	Params: &client.SettlementVaultDepositParams{
+		AcceptedTokens: map[client.ChainID][]common.Address{
+			1:  {common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")}, // Ethereum USDC
+			10: {common.HexToAddress("0x7F5c764cBc14f9669B88837ca1490cCa17c31607")}, // Optimism USDC
+		},
+		VaultChainId:         1, // Ethereum
+		VaultAddress:         common.HexToAddress("0x1234..."), // ERC4626 vault
+		VaultUnderlyingToken: common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"), // USDC
+		DepositAmount:        hexutil.Big(*depositAmount),
+		RecipientAddress:     common.HexToAddress("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"),
+		VaultMinTotalShares:  hexutil.Big(*minShares),
 	},
 }
 ```
