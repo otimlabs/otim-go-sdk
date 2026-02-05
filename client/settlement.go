@@ -53,10 +53,24 @@ type SettlementVaultDepositParams struct {
 	VaultMinTotalShares  U256                         `json:"vaultMinTotalShares"`
 }
 
+// VaultMigrateParams represents vault migration orchestration parameters
+type VaultMigrateParams struct {
+	SourceVaultAddress         common.Address `json:"sourceVaultAddress"`
+	SourceVaultUnderlyingToken common.Address `json:"sourceVaultUnderlyingToken"`
+	SourceVaultChainId         ChainID        `json:"sourceVaultChainId"`
+	WithdrawAmount             U256           `json:"withdrawAmount"`
+	DestVaultAddress           common.Address `json:"destVaultAddress"`
+	DestVaultUnderlyingToken   common.Address `json:"destVaultUnderlyingToken"`
+	DestVaultChainId           ChainID        `json:"destVaultChainId"`
+	DestVaultMinTotalShares    U256           `json:"destVaultMinTotalShares"`
+	RecipientAddress           common.Address `json:"recipientAddress"`
+}
+
 // Implement OrchestrationParams interface
 func (s *SettlementParams) orchestrationParams()               {}
 func (v *VaultWithdrawSettlementParams) orchestrationParams()  {}
 func (svd *SettlementVaultDepositParams) orchestrationParams() {}
+func (vm *VaultMigrateParams) orchestrationParams()            {}
 
 // OrchestrationMetadata is the interface for orchestration metadata
 type OrchestrationMetadata interface {
@@ -126,6 +140,14 @@ func (svd SettlementVaultDepositParams) MarshalJSON() ([]byte, error) {
 	type Alias SettlementVaultDepositParams
 	return json.Marshal(map[string]interface{}{
 		"settlementVaultDeposit": (Alias)(svd),
+	})
+}
+
+// MarshalJSON implements custom JSON marshaling for VaultMigrateParams (externally tagged)
+func (vm VaultMigrateParams) MarshalJSON() ([]byte, error) {
+	type Alias VaultMigrateParams
+	return json.Marshal(map[string]interface{}{
+		"vaultMigrate": (Alias)(vm),
 	})
 }
 
@@ -244,8 +266,14 @@ func (r *BuildSettlementOrchestrationRequest) UnmarshalJSON(data []byte) error {
 			return fmt.Errorf("unmarshal settlement vault deposit params: %w", err)
 		}
 		r.Params = &params
+	} else if migrateData, ok := paramsMap["vaultMigrate"]; ok {
+		var params VaultMigrateParams
+		if err := json.Unmarshal(migrateData, &params); err != nil {
+			return fmt.Errorf("unmarshal vault migrate params: %w", err)
+		}
+		r.Params = &params
 	} else {
-		return fmt.Errorf("unknown orchestration params type, expected 'settlement', 'vaultWithdrawSettlement', or 'settlementVaultDeposit'")
+		return fmt.Errorf("unknown orchestration params type, expected 'settlement', 'vaultWithdrawSettlement', 'settlementVaultDeposit', or 'vaultMigrate'")
 	}
 
 	// Unmarshal metadata if present
