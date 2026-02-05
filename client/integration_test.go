@@ -231,7 +231,7 @@ func createTestVaultMigrateBuildRequest() *BuildSettlementOrchestrationRequest {
 
 	// Destination vault on Optimism
 	destVaultAddress := common.HexToAddress("0x2222222222222222222222222222222222222222")
-	usdcOptimism := common.HexToAddress("0x7F5c764cBc14f9669B88837ca1490cCa17c31607")
+	usdcOptimism := common.HexToAddress("0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85")
 
 	// Recipient address
 	recipientAddress := common.HexToAddress("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0")
