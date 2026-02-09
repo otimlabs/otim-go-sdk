@@ -31,46 +31,45 @@ type SettlementParams struct {
 	RecipientAddress  common.Address               `json:"recipientAddress"`
 }
 
-// VaultWithdrawSettlementParams represents vault withdrawal settlement orchestration parameters
-type VaultWithdrawSettlementParams struct {
-	VaultAddress         common.Address `json:"vaultAddress"`
-	VaultUnderlyingToken common.Address `json:"vaultUnderlyingToken"`
-	VaultChainId         ChainID        `json:"vaultChainId"`
-	SettlementChainId    ChainID        `json:"settlementChainId"`
-	SettlementToken      common.Address `json:"settlementToken"`
-	RecipientAddress     common.Address `json:"recipientAddress"`
-	WithdrawAmount       U256           `json:"withdrawAmount"`
+// VaultWithdrawSettlementRequest represents vault withdrawal settlement orchestration parameters
+// The API automatically detects the vault's underlying token via on-chain calls
+type VaultWithdrawSettlementRequest struct {
+	VaultAddress      common.Address `json:"vaultAddress"`
+	VaultChainId      ChainID        `json:"vaultChainId"`
+	SettlementChainId ChainID        `json:"settlementChainId"`
+	SettlementToken   common.Address `json:"settlementToken"`
+	RecipientAddress  common.Address `json:"recipientAddress"`
+	WithdrawAmount    U256           `json:"withdrawAmount"`
 }
 
-// SettlementVaultDepositParams represents settlement vault deposit orchestration parameters
-type SettlementVaultDepositParams struct {
-	AcceptedTokens       map[ChainID][]common.Address `json:"acceptedTokens"`
-	VaultChainId         ChainID                      `json:"vaultChainId"`
-	VaultAddress         common.Address               `json:"vaultAddress"`
-	VaultUnderlyingToken common.Address               `json:"vaultUnderlyingToken"`
-	DepositAmount        U256                         `json:"depositAmount"`
-	RecipientAddress     common.Address               `json:"recipientAddress"`
-	VaultMinTotalShares  U256                         `json:"vaultMinTotalShares"`
+// SettlementVaultDepositRequest represents settlement vault deposit orchestration parameters
+// The API automatically detects the vault's underlying token via on-chain calls
+type SettlementVaultDepositRequest struct {
+	AcceptedTokens      map[ChainID][]common.Address `json:"acceptedTokens"`
+	VaultChainId        ChainID                      `json:"vaultChainId"`
+	VaultAddress        common.Address               `json:"vaultAddress"`
+	DepositAmount       U256                         `json:"depositAmount"`
+	RecipientAddress    common.Address               `json:"recipientAddress"`
+	VaultMinTotalShares U256                         `json:"vaultMinTotalShares"`
 }
 
-// VaultMigrateParams represents vault migration orchestration parameters
-type VaultMigrateParams struct {
-	SourceVaultAddress         common.Address `json:"sourceVaultAddress"`
-	SourceVaultUnderlyingToken common.Address `json:"sourceVaultUnderlyingToken"`
-	SourceVaultChainId         ChainID        `json:"sourceVaultChainId"`
-	WithdrawAmount             U256           `json:"withdrawAmount"`
-	DestVaultAddress           common.Address `json:"destVaultAddress"`
-	DestVaultUnderlyingToken   common.Address `json:"destVaultUnderlyingToken"`
-	DestVaultChainId           ChainID        `json:"destVaultChainId"`
-	DestVaultMinTotalShares    U256           `json:"destVaultMinTotalShares"`
-	RecipientAddress           common.Address `json:"recipientAddress"`
+// VaultMigrateRequest represents vault migration orchestration parameters
+// The API automatically detects both vaults' underlying tokens via on-chain calls
+type VaultMigrateRequest struct {
+	SourceVaultAddress      common.Address `json:"sourceVaultAddress"`
+	SourceVaultChainId      ChainID        `json:"sourceVaultChainId"`
+	WithdrawAmount          U256           `json:"withdrawAmount"`
+	DestVaultAddress        common.Address `json:"destVaultAddress"`
+	DestVaultChainId        ChainID        `json:"destVaultChainId"`
+	DestVaultMinTotalShares U256           `json:"destVaultMinTotalShares"`
+	RecipientAddress        common.Address `json:"recipientAddress"`
 }
 
 // Implement OrchestrationParams interface
-func (s *SettlementParams) orchestrationParams()               {}
-func (v *VaultWithdrawSettlementParams) orchestrationParams()  {}
-func (svd *SettlementVaultDepositParams) orchestrationParams() {}
-func (vm *VaultMigrateParams) orchestrationParams()            {}
+func (s *SettlementParams) orchestrationParams()                {}
+func (v *VaultWithdrawSettlementRequest) orchestrationParams()  {}
+func (svd *SettlementVaultDepositRequest) orchestrationParams() {}
+func (vm *VaultMigrateRequest) orchestrationParams()            {}
 
 // OrchestrationMetadata is the interface for orchestration metadata
 type OrchestrationMetadata interface {
@@ -127,25 +126,25 @@ func (p SettlementParams) MarshalJSON() ([]byte, error) {
 	})
 }
 
-// MarshalJSON implements custom JSON marshaling for VaultWithdrawSettlementParams (externally tagged)
-func (v VaultWithdrawSettlementParams) MarshalJSON() ([]byte, error) {
-	type Alias VaultWithdrawSettlementParams
+// MarshalJSON implements custom JSON marshaling for VaultWithdrawSettlementRequest (externally tagged)
+func (v VaultWithdrawSettlementRequest) MarshalJSON() ([]byte, error) {
+	type Alias VaultWithdrawSettlementRequest
 	return json.Marshal(map[string]interface{}{
 		"vaultWithdrawSettlement": (Alias)(v),
 	})
 }
 
-// MarshalJSON implements custom JSON marshaling for SettlementVaultDepositParams (externally tagged)
-func (svd SettlementVaultDepositParams) MarshalJSON() ([]byte, error) {
-	type Alias SettlementVaultDepositParams
+// MarshalJSON implements custom JSON marshaling for SettlementVaultDepositRequest (externally tagged)
+func (svd SettlementVaultDepositRequest) MarshalJSON() ([]byte, error) {
+	type Alias SettlementVaultDepositRequest
 	return json.Marshal(map[string]interface{}{
 		"settlementVaultDeposit": (Alias)(svd),
 	})
 }
 
-// MarshalJSON implements custom JSON marshaling for VaultMigrateParams (externally tagged)
-func (vm VaultMigrateParams) MarshalJSON() ([]byte, error) {
-	type Alias VaultMigrateParams
+// MarshalJSON implements custom JSON marshaling for VaultMigrateRequest (externally tagged)
+func (vm VaultMigrateRequest) MarshalJSON() ([]byte, error) {
+	type Alias VaultMigrateRequest
 	return json.Marshal(map[string]interface{}{
 		"vaultMigrate": (Alias)(vm),
 	})
@@ -255,19 +254,19 @@ func (r *BuildSettlementOrchestrationRequest) UnmarshalJSON(data []byte) error {
 		}
 		r.Params = &params
 	} else if vaultData, ok := paramsMap["vaultWithdrawSettlement"]; ok {
-		var params VaultWithdrawSettlementParams
+		var params VaultWithdrawSettlementRequest
 		if err := json.Unmarshal(vaultData, &params); err != nil {
 			return fmt.Errorf("unmarshal vault withdraw settlement params: %w", err)
 		}
 		r.Params = &params
 	} else if depositData, ok := paramsMap["settlementVaultDeposit"]; ok {
-		var params SettlementVaultDepositParams
+		var params SettlementVaultDepositRequest
 		if err := json.Unmarshal(depositData, &params); err != nil {
 			return fmt.Errorf("unmarshal settlement vault deposit params: %w", err)
 		}
 		r.Params = &params
 	} else if migrateData, ok := paramsMap["vaultMigrate"]; ok {
-		var params VaultMigrateParams
+		var params VaultMigrateRequest
 		if err := json.Unmarshal(migrateData, &params); err != nil {
 			return fmt.Errorf("unmarshal vault migrate params: %w", err)
 		}

@@ -158,8 +158,8 @@ func createTestVaultWithdrawSettlementBuildRequest() *BuildSettlementOrchestrati
 	withdrawAmount := new(big.Int)
 	withdrawAmount.SetString("5000000000", 10) // 5000 USDC (6 decimals)
 
-	// Test vault address (example ERC4626 vault)
-	vaultAddress := common.HexToAddress("0x1234567890123456789012345678901234567890")
+	// Steakhouse USDC
+	vaultAddress := common.HexToAddress("0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB")
 
 	// USDC contract address on Ethereum mainnet
 	usdcAddress := common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
@@ -168,14 +168,13 @@ func createTestVaultWithdrawSettlementBuildRequest() *BuildSettlementOrchestrati
 	recipientAddress := common.HexToAddress("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0")
 
 	return &BuildSettlementOrchestrationRequest{
-		Params: &VaultWithdrawSettlementParams{
-			VaultAddress:         vaultAddress,
-			VaultUnderlyingToken: usdcAddress,
-			VaultChainId:         1, // Ethereum mainnet
-			SettlementChainId:    1,
-			SettlementToken:      usdcAddress,
-			RecipientAddress:     recipientAddress,
-			WithdrawAmount:       hexutil.Big(*withdrawAmount),
+		Params: &VaultWithdrawSettlementRequest{
+			VaultAddress:      vaultAddress,
+			VaultChainId:      1, // Ethereum mainnet
+			SettlementChainId: 1,
+			SettlementToken:   usdcAddress,
+			RecipientAddress:  recipientAddress,
+			WithdrawAmount:    hexutil.Big(*withdrawAmount),
 		},
 	}
 }
@@ -188,8 +187,8 @@ func createTestSettlementVaultDepositBuildRequest() *BuildSettlementOrchestratio
 	minShares := new(big.Int)
 	minShares.SetString("950000000", 10) // 950 shares minimum (slippage protection)
 
-	// Test vault address (example ERC4626 vault)
-	vaultAddress := common.HexToAddress("0x1234567890123456789012345678901234567890")
+	// Steakhouse USDC
+	vaultAddress := common.HexToAddress("0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB")
 
 	// USDC contract addresses
 	usdcEthereum := common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
@@ -205,14 +204,13 @@ func createTestSettlementVaultDepositBuildRequest() *BuildSettlementOrchestratio
 	}
 
 	return &BuildSettlementOrchestrationRequest{
-		Params: &SettlementVaultDepositParams{
-			AcceptedTokens:       acceptedTokens,
-			VaultChainId:         1, // Ethereum mainnet
-			VaultAddress:         vaultAddress,
-			VaultUnderlyingToken: usdcEthereum,
-			DepositAmount:        hexutil.Big(*depositAmount),
-			RecipientAddress:     recipientAddress,
-			VaultMinTotalShares:  hexutil.Big(*minShares),
+		Params: &SettlementVaultDepositRequest{
+			AcceptedTokens:      acceptedTokens,
+			VaultChainId:        1, // Ethereum mainnet
+			VaultAddress:        vaultAddress,
+			DepositAmount:       hexutil.Big(*depositAmount),
+			RecipientAddress:    recipientAddress,
+			VaultMinTotalShares: hexutil.Big(*minShares),
 		},
 	}
 }
@@ -225,28 +223,24 @@ func createTestVaultMigrateBuildRequest() *BuildSettlementOrchestrationRequest {
 	minShares := new(big.Int)
 	minShares.SetString("950000000", 10) // 950 shares minimum (slippage protection)
 
-	// Source vault on Ethereum
-	sourceVaultAddress := common.HexToAddress("0x1111111111111111111111111111111111111111")
-	usdcEthereum := common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
+	// Steakhouse USDC (ETH mainnet)
+	sourceVaultAddress := common.HexToAddress("0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB")
 
-	// Destination vault on Optimism
-	destVaultAddress := common.HexToAddress("0x2222222222222222222222222222222222222222")
-	usdcOptimism := common.HexToAddress("0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85")
+	// Steakhouse USDC (Base mainnet)
+	destVaultAddress := common.HexToAddress("0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183")
 
 	// Recipient address
 	recipientAddress := common.HexToAddress("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0")
 
 	return &BuildSettlementOrchestrationRequest{
-		Params: &VaultMigrateParams{
-			SourceVaultAddress:         sourceVaultAddress,
-			SourceVaultUnderlyingToken: usdcEthereum,
-			SourceVaultChainId:         1, // Ethereum mainnet
-			WithdrawAmount:             hexutil.Big(*withdrawAmount),
-			DestVaultAddress:           destVaultAddress,
-			DestVaultUnderlyingToken:   usdcOptimism,
-			DestVaultChainId:           10, // Optimism
-			DestVaultMinTotalShares:    hexutil.Big(*minShares),
-			RecipientAddress:           recipientAddress,
+		Params: &VaultMigrateRequest{
+			SourceVaultAddress:      sourceVaultAddress,
+			SourceVaultChainId:      1, // Ethereum mainnet
+			WithdrawAmount:          hexutil.Big(*withdrawAmount),
+			DestVaultAddress:        destVaultAddress,
+			DestVaultChainId:        8453, // Base mainnet
+			DestVaultMinTotalShares: hexutil.Big(*minShares),
+			RecipientAddress:        recipientAddress,
 		},
 	}
 }
@@ -355,7 +349,7 @@ func TestSettlementOrchestrationIntegration(t *testing.T) {
 }
 
 // TestVaultWithdrawSettlementIntegration tests the full vault withdrawal settlement orchestration flow:
-// 1. Call BuildSettlementOrchestration API with VaultWithdrawSettlementParams
+// 1. Call BuildSettlementOrchestration API with VaultWithdrawSettlementRequest
 // 2. Sign the returned delegation and instructions with Turnkey
 // 3. Submit to NewOrchestration API
 func TestVaultWithdrawSettlementIntegration(t *testing.T) {
@@ -457,7 +451,7 @@ func TestVaultWithdrawSettlementIntegration(t *testing.T) {
 }
 
 // TestSettlementVaultDepositIntegration tests the full settlement vault deposit orchestration flow:
-// 1. Call BuildSettlementOrchestration API with SettlementVaultDepositParams
+// 1. Call BuildSettlementOrchestration API with SettlementVaultDepositRequest
 // 2. Sign the returned delegation and instructions with Turnkey
 // 3. Submit to NewOrchestration API
 func TestSettlementVaultDepositIntegration(t *testing.T) {
@@ -559,7 +553,7 @@ func TestSettlementVaultDepositIntegration(t *testing.T) {
 }
 
 // TestVaultMigrateIntegration tests the full vault migration orchestration flow:
-// 1. Call BuildSettlementOrchestration API with VaultMigrateParams
+// 1. Call BuildSettlementOrchestration API with VaultMigrateRequest
 // 2. Sign the returned delegation and instructions with Turnkey
 // 3. Submit to NewOrchestration API
 func TestVaultMigrateIntegration(t *testing.T) {
