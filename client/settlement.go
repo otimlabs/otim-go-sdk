@@ -45,24 +45,22 @@ type VaultWithdrawSettlementRequest struct {
 // SettlementVaultDepositRequest represents settlement vault deposit orchestration parameters
 // The API automatically detects the vault's underlying token via on-chain calls
 type SettlementVaultDepositRequest struct {
-	AcceptedTokens      map[ChainID][]common.Address `json:"acceptedTokens"`
-	VaultChainId        ChainID                      `json:"vaultChainId"`
-	VaultAddress        common.Address               `json:"vaultAddress"`
-	DepositAmount       U256                         `json:"depositAmount"`
-	RecipientAddress    common.Address               `json:"recipientAddress"`
-	VaultMinTotalShares U256                         `json:"vaultMinTotalShares"`
+	AcceptedTokens   map[ChainID][]common.Address `json:"acceptedTokens"`
+	VaultChainId     ChainID                      `json:"vaultChainId"`
+	VaultAddress     common.Address               `json:"vaultAddress"`
+	DepositAmount    U256                         `json:"depositAmount"`
+	RecipientAddress common.Address               `json:"recipientAddress"`
 }
 
 // VaultMigrateRequest represents vault migration orchestration parameters
 // The API automatically detects both vaults' underlying tokens via on-chain calls
 type VaultMigrateRequest struct {
-	SourceVaultAddress      common.Address `json:"sourceVaultAddress"`
-	SourceVaultChainId      ChainID        `json:"sourceVaultChainId"`
-	WithdrawAmount          U256           `json:"withdrawAmount"`
-	DestVaultAddress        common.Address `json:"destVaultAddress"`
-	DestVaultChainId        ChainID        `json:"destVaultChainId"`
-	DestVaultMinTotalShares U256           `json:"destVaultMinTotalShares"`
-	RecipientAddress        common.Address `json:"recipientAddress"`
+	SourceVaultAddress common.Address `json:"sourceVaultAddress"`
+	SourceVaultChainId ChainID        `json:"sourceVaultChainId"`
+	WithdrawAmount     U256           `json:"withdrawAmount"`
+	DestVaultAddress   common.Address `json:"destVaultAddress"`
+	DestVaultChainId   ChainID        `json:"destVaultChainId"`
+	RecipientAddress   common.Address `json:"recipientAddress"`
 }
 
 // Implement OrchestrationParams interface

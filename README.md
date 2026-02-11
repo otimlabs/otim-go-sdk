@@ -129,7 +129,6 @@ Settlement vault deposit orchestration for ERC4626 vaults. Accepts multi-chain p
 
 ```go
 depositAmount := big.NewInt(1000000000) // 1000 tokens (assuming 6 decimals)
-minShares := big.NewInt(950000000) // Minimum shares for slippage protection
 
 buildReq := &client.BuildSettlementOrchestrationRequest{
 	Params: &client.SettlementVaultDepositRequest{
@@ -137,11 +136,10 @@ buildReq := &client.BuildSettlementOrchestrationRequest{
 			1:  {common.HexToAddress("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")}, // Ethereum USDC
 			10: {common.HexToAddress("0x7F5c764cBc14f9669B88837ca1490cCa17c31607")}, // Optimism USDC
 		},
-		VaultChainId:        1, // Ethereum
-		VaultAddress:        common.HexToAddress("0x1234..."), // ERC4626 vault
-		DepositAmount:       hexutil.Big(*depositAmount),
-		RecipientAddress:    common.HexToAddress("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"),
-		VaultMinTotalShares: hexutil.Big(*minShares),
+		VaultChainId:     1, // Ethereum
+		VaultAddress:     common.HexToAddress("0x1234..."), // ERC4626 vault
+		DepositAmount:    hexutil.Big(*depositAmount),
+		RecipientAddress: common.HexToAddress("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"),
 	},
 }
 ```
@@ -152,17 +150,15 @@ Vault migration orchestration for moving assets between ERC4626 vaults, potentia
 
 ```go
 withdrawAmount := big.NewInt(1000000000) // 1000 tokens (assuming 6 decimals)
-minShares := big.NewInt(950000000) // Minimum shares for slippage protection
 
 buildReq := &client.BuildSettlementOrchestrationRequest{
 	Params: &client.VaultMigrateRequest{
-		SourceVaultAddress:      common.HexToAddress("0x1111..."), // Source ERC4626 vault
-		SourceVaultChainId:      1, // Ethereum
-		WithdrawAmount:          hexutil.Big(*withdrawAmount),
-		DestVaultAddress:        common.HexToAddress("0x2222..."), // Destination ERC4626 vault
-		DestVaultChainId:        10, // Optimism
-		DestVaultMinTotalShares: hexutil.Big(*minShares),
-		RecipientAddress:        common.HexToAddress("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"),
+		SourceVaultAddress: common.HexToAddress("0x1111..."), // Source ERC4626 vault
+		SourceVaultChainId: 1, // Ethereum
+		WithdrawAmount:     hexutil.Big(*withdrawAmount),
+		DestVaultAddress:   common.HexToAddress("0x2222..."), // Destination ERC4626 vault
+		DestVaultChainId:   10, // Optimism
+		RecipientAddress:   common.HexToAddress("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"),
 	},
 }
 ```

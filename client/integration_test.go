@@ -184,9 +184,6 @@ func createTestSettlementVaultDepositBuildRequest() *BuildSettlementOrchestratio
 	depositAmount := new(big.Int)
 	depositAmount.SetString("1000000000", 10) // 1000 USDC (6 decimals)
 
-	minShares := new(big.Int)
-	minShares.SetString("950000000", 10) // 950 shares minimum (slippage protection)
-
 	// Steakhouse USDC
 	vaultAddress := common.HexToAddress("0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB")
 
@@ -205,12 +202,11 @@ func createTestSettlementVaultDepositBuildRequest() *BuildSettlementOrchestratio
 
 	return &BuildSettlementOrchestrationRequest{
 		Params: &SettlementVaultDepositRequest{
-			AcceptedTokens:      acceptedTokens,
-			VaultChainId:        1, // Ethereum mainnet
-			VaultAddress:        vaultAddress,
-			DepositAmount:       hexutil.Big(*depositAmount),
-			RecipientAddress:    recipientAddress,
-			VaultMinTotalShares: hexutil.Big(*minShares),
+			AcceptedTokens:   acceptedTokens,
+			VaultChainId:     1, // Ethereum mainnet
+			VaultAddress:     vaultAddress,
+			DepositAmount:    hexutil.Big(*depositAmount),
+			RecipientAddress: recipientAddress,
 		},
 	}
 }
@@ -219,9 +215,6 @@ func createTestSettlementVaultDepositBuildRequest() *BuildSettlementOrchestratio
 func createTestVaultMigrateBuildRequest() *BuildSettlementOrchestrationRequest {
 	withdrawAmount := new(big.Int)
 	withdrawAmount.SetString("1000000000", 10) // 1000 USDC (6 decimals)
-
-	minShares := new(big.Int)
-	minShares.SetString("950000000", 10) // 950 shares minimum (slippage protection)
 
 	// Steakhouse USDC (ETH mainnet)
 	sourceVaultAddress := common.HexToAddress("0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB")
@@ -234,13 +227,12 @@ func createTestVaultMigrateBuildRequest() *BuildSettlementOrchestrationRequest {
 
 	return &BuildSettlementOrchestrationRequest{
 		Params: &VaultMigrateRequest{
-			SourceVaultAddress:      sourceVaultAddress,
-			SourceVaultChainId:      1, // Ethereum mainnet
-			WithdrawAmount:          hexutil.Big(*withdrawAmount),
-			DestVaultAddress:        destVaultAddress,
-			DestVaultChainId:        8453, // Base mainnet
-			DestVaultMinTotalShares: hexutil.Big(*minShares),
-			RecipientAddress:        recipientAddress,
+			SourceVaultAddress: sourceVaultAddress,
+			SourceVaultChainId: 1, // Ethereum mainnet
+			WithdrawAmount:     hexutil.Big(*withdrawAmount),
+			DestVaultAddress:   destVaultAddress,
+			DestVaultChainId:   8453, // Base mainnet
+			RecipientAddress:   recipientAddress,
 		},
 	}
 }
