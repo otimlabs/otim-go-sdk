@@ -63,11 +63,21 @@ type VaultMigrateRequest struct {
 	RecipientAddress   common.Address `json:"recipientAddress"`
 }
 
+// CoveredVaultDepositRequest represents covered vault deposit orchestration parameters
+// The API enricher resolves the underlying vault and asset for the ERC7540 covered vault
+type CoveredVaultDepositRequest struct {
+	CoveredVaultAddress common.Address `json:"coveredVaultAddress"`
+	CoveredVaultChainId ChainID        `json:"coveredVaultChainId"`
+	DepositAmount       U256           `json:"depositAmount"`
+	RecipientAddress    common.Address `json:"recipientAddress"`
+}
+
 // Implement OrchestrationParams interface
 func (s *SettlementParams) orchestrationParams()                {}
 func (v *VaultWithdrawSettlementRequest) orchestrationParams()  {}
 func (svd *SettlementVaultDepositRequest) orchestrationParams() {}
 func (vm *VaultMigrateRequest) orchestrationParams()            {}
+func (cvd *CoveredVaultDepositRequest) orchestrationParams()    {}
 
 // OrchestrationMetadata is the interface for orchestration metadata
 type OrchestrationMetadata interface {
@@ -145,6 +155,14 @@ func (vm VaultMigrateRequest) MarshalJSON() ([]byte, error) {
 	type Alias VaultMigrateRequest
 	return json.Marshal(map[string]interface{}{
 		"vaultMigrate": (Alias)(vm),
+	})
+}
+
+// MarshalJSON implements custom JSON marshaling for CoveredVaultDepositRequest (externally tagged)
+func (cvd CoveredVaultDepositRequest) MarshalJSON() ([]byte, error) {
+	type Alias CoveredVaultDepositRequest
+	return json.Marshal(map[string]interface{}{
+		"coveredVaultDeposit": (Alias)(cvd),
 	})
 }
 
@@ -269,8 +287,14 @@ func (r *BuildSettlementOrchestrationRequest) UnmarshalJSON(data []byte) error {
 			return fmt.Errorf("unmarshal vault migrate params: %w", err)
 		}
 		r.Params = &params
+	} else if coveredData, ok := paramsMap["coveredVaultDeposit"]; ok {
+		var params CoveredVaultDepositRequest
+		if err := json.Unmarshal(coveredData, &params); err != nil {
+			return fmt.Errorf("unmarshal covered vault deposit params: %w", err)
+		}
+		r.Params = &params
 	} else {
-		return fmt.Errorf("unknown orchestration params type, expected 'settlement', 'vaultWithdrawSettlement', 'settlementVaultDeposit', or 'vaultMigrate'")
+		return fmt.Errorf("unknown orchestration params type, expected 'settlement', 'vaultWithdrawSettlement', 'settlementVaultDeposit', 'vaultMigrate', or 'coveredVaultDeposit'")
 	}
 
 	// Unmarshal metadata if present
