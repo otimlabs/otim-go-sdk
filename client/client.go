@@ -125,7 +125,7 @@ func (c *Client) postJSON(
 // This ID is used to manage Turnkey wallets within the operating account.
 func (c *Client) GetSubOrganization(ctx context.Context) (string, error) {
 	var resp SubOrganizationResponse
-	if err := c.getJSON(ctx, "/operating_accounts/sub_organization", &resp); err != nil {
+	if err := c.getJSON(ctx, "/orchestration/sub_organization", &resp); err != nil {
 		return "", fmt.Errorf("fetch sub-organization: %w", err)
 	}
 
